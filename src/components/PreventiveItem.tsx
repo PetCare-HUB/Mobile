@@ -1,10 +1,11 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type PreventiveItemProps = {
   title: string;
   date: string;
   description: string;
   done: boolean;
+  onToggle?: () => void;
 };
 
 export function PreventiveItem({
@@ -12,6 +13,7 @@ export function PreventiveItem({
   date,
   description,
   done,
+  onToggle,
 }: PreventiveItemProps) {
   return (
     <View style={styles.card}>
@@ -25,6 +27,17 @@ export function PreventiveItem({
 
       <Text style={styles.date}>{date}</Text>
       <Text style={styles.description}>{description}</Text>
+
+      {onToggle && (
+        <TouchableOpacity
+          style={[styles.button, done ? styles.undoButton : styles.doneButton]}
+          onPress={onToggle}
+        >
+          <Text style={styles.buttonText}>
+            {done ? 'Marcar como pendente' : 'Marcar como feito'}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -74,5 +87,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#475569',
     lineHeight: 20,
+  },
+  button: {
+    marginTop: 14,
+    padding: 12,
+    borderRadius: 12,
+  },
+  doneButton: {
+    backgroundColor: '#16A34A',
+  },
+  undoButton: {
+    backgroundColor: '#64748B',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });

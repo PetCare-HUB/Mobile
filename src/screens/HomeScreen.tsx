@@ -1,3 +1,5 @@
+import { useCallback, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   ScrollView,
@@ -12,12 +14,40 @@ import { PreventiveItem } from '../components/PreventiveItem';
 import { ScoreCard } from '../components/ScoreCard';
 import { homeAlerts, petSummary, preventiveItems } from '../data/mockData';
 import type { RootStackParamList } from '../navigation/AppNavigator';
+import { getPetProfile, type PetProfile } from '../storage/petStorage';
 
 type HomeScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Home'>;
 };
 
 export function HomeScreen({ navigation }: HomeScreenProps) {
+  const [petProfile, setPetProfile] = useState<PetProfile | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      async function carregarPerfil() {
+        const perfilSalvo = await getPetProfile();
+
+        if (isActive) {
+          setPetProfile(perfilSalvo);
+        }
+      }
+
+      carregarPerfil();
+
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
+
+  const petName = petProfile?.nome || petSummary.nome;
+  const petSpecies = petProfile?.especie || petSummary.especie;
+  const petBreed = petProfile?.raca || petSummary.raca;
+  const petClinic = petProfile?.clinica || 'Clínica não vinculada';
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>PetCare Hub</Text>
@@ -28,10 +58,26 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
       </Text>
 
       <ScoreCard
-        petName={petSummary.nome}
+        petName={petName}
         score={petSummary.score}
         status={petSummary.status}
       />
+
+      <View style={styles.petInfoCard}>
+        <Text style={styles.petInfoTitle}>Pet cadastrado</Text>
+
+        <Text style={styles.petInfoText}>
+          Espécie: <Text style={styles.petInfoStrong}>{petSpecies}</Text>
+        </Text>
+
+        <Text style={styles.petInfoText}>
+          Raça: <Text style={styles.petInfoStrong}>{petBreed}</Text>
+        </Text>
+
+        <Text style={styles.petInfoText}>
+          Clínica: <Text style={styles.petInfoStrong}>{petClinic}</Text>
+        </Text>
+      </View>
 
       <Text style={styles.sectionTitle}>Módulos do app</Text>
 
@@ -118,6 +164,27 @@ const styles = StyleSheet.create({
     color: '#475569',
     lineHeight: 22,
     marginBottom: 20,
+  },
+  petInfoCard: {
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 20,
+  },
+  petInfoTitle: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+  petInfoText: {
+    fontSize: 14,
+    color: '#475569',
+    marginBottom: 4,
+  },
+  petInfoStrong: {
+    fontWeight: 'bold',
+    color: '#0F172A',
   },
   sectionTitle: {
     fontSize: 20,
