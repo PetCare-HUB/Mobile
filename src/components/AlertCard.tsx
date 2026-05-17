@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 type AlertCardProps = {
   title: string;
@@ -11,7 +12,7 @@ function getAlertStyle(severity: AlertCardProps['severity']) {
     return {
       backgroundColor: '#FEE2E2',
       titleColor: '#991B1B',
-      icon: '🚨',
+      iconName: 'alert-circle',
     };
   }
 
@@ -19,14 +20,14 @@ function getAlertStyle(severity: AlertCardProps['severity']) {
     return {
       backgroundColor: '#FEF3C7',
       titleColor: '#92400E',
-      icon: '⚠️',
+      iconName: 'alert',
     };
   }
 
   return {
     backgroundColor: '#DBEAFE',
     titleColor: '#1D4ED8',
-    icon: 'ℹ️',
+    iconName: 'information',
   };
 }
 
@@ -35,9 +36,16 @@ export function AlertCard({ title, message, severity }: AlertCardProps) {
 
   return (
     <View style={[styles.card, { backgroundColor: alertStyle.backgroundColor }]}>
-      <Text style={[styles.title, { color: alertStyle.titleColor }]}>
-        {alertStyle.icon} {title}
-      </Text>
+      <View style={styles.titleContainer}>
+        <MaterialCommunityIcons 
+          name={alertStyle.iconName as any} 
+          size={20} 
+          color={alertStyle.titleColor} 
+        />
+        <Text style={[styles.title, { color: alertStyle.titleColor }]}>
+          {title}
+        </Text>
+      </View>
 
       <Text style={styles.message}>{message}</Text>
     </View>
@@ -50,10 +58,15 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 12,
   },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
   title: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 6,
   },
   message: {
     fontSize: 14,

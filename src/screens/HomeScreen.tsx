@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons'; 
 
 import { AlertCard } from '../components/AlertCard';
 import { PreventiveItem } from '../components/PreventiveItem';
@@ -86,28 +87,40 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
           style={styles.button}
           onPress={() => navigation.navigate('Collar')}
         >
-          <Text style={styles.buttonText}>🐾 Coleira</Text>
+          <View style={styles.buttonContent}>
+            <MaterialCommunityIcons name="tag" size={22} color="#FFFFFF" />
+            <Text style={styles.buttonText}>Coleira</Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate('Feeder')}
         >
-          <Text style={styles.buttonText}>🍽️ Comedouro</Text>
+          <View style={styles.buttonContent}>
+            <MaterialCommunityIcons name="bowl" size={22} color="#FFFFFF" />
+            <Text style={styles.buttonText}>Comedouro</Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate('Environment')}
         >
-          <Text style={styles.buttonText}>🏠 Ambiente</Text>
+          <View style={styles.buttonContent}>
+            <MaterialCommunityIcons name="home-thermometer-outline" size={22} color="#FFFFFF" />
+            <Text style={styles.buttonText}>Ambiente</Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate('Preventive')}
         >
-          <Text style={styles.buttonText}>📅 Preventivo</Text>
+          <View style={styles.buttonContent}>
+            <MaterialCommunityIcons name="calendar-check" size={22} color="#FFFFFF" />
+            <Text style={styles.buttonText}>Preventivo</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -204,6 +217,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#2563EB',
     padding: 16,
     borderRadius: 14,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
   },
   buttonText: {
     color: '#FFFFFF',

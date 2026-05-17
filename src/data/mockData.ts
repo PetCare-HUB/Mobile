@@ -34,7 +34,7 @@ export const collarMetrics: SensorMetric[] = [
   {
     id: 1,
     title: 'Status atual',
-    value: '🏃 Ativo',
+    value: 'Ativo',
     description: 'O pet apresentou movimentação normal nos últimos minutos.',
     status: 'healthy',
   },

@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import type { HealthStatus } from '../types/pet';
 
@@ -9,9 +10,9 @@ type ScoreCardProps = {
 };
 
 function getStatusLabel(status: HealthStatus) {
-  if (status === 'healthy') return '🟢 Saudável';
-  if (status === 'attention') return '🟡 Atenção';
-  return '🔴 Risco';
+  if (status === 'healthy') return 'Saudável';
+  if (status === 'attention') return 'Atenção';
+  return 'Risco';
 }
 
 function getScoreColor(status: HealthStatus) {
@@ -32,9 +33,12 @@ export function ScoreCard({ petName, score, status }: ScoreCardProps) {
         <Text style={[styles.scoreValue, { color: scoreColor }]}>{score}</Text>
       </View>
 
-      <Text style={[styles.status, { color: scoreColor }]}>
-        {getStatusLabel(status)}
-      </Text>
+      <View style={styles.statusContainer}>
+        <MaterialCommunityIcons name="circle" size={14} color={scoreColor} />
+        <Text style={[styles.status, { color: scoreColor }]}>
+          {getStatusLabel(status)}
+        </Text>
+      </View>
 
       <Text style={styles.description}>
         O score resume sinais de atividade, alimentação, ambiente e histórico
@@ -76,10 +80,15 @@ const styles = StyleSheet.create({
     fontSize: 42,
     fontWeight: 'bold',
   },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 10,
+  },
   status: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
   },
   description: {
     fontSize: 14,
