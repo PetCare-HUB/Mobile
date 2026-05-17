@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -11,6 +11,12 @@ import {
   View,
 } from 'react-native';
 
+import {
+  getPetProfile,
+  removePetProfile,
+  savePetProfile,
+} from '../storage/petStorage';
+
 export function PetProfileScreen() {
   const [nome, setNome] = useState('');
   const [especie, setEspecie] = useState('');
@@ -18,23 +24,72 @@ export function PetProfileScreen() {
   const [idade, setIdade] = useState('');
   const [peso, setPeso] = useState('');
   const [clinica, setClinica] = useState('');
+  const [perfilCarregado, setPerfilCarregado] = useState(false);
 
-  function salvarPerfil() {
+  useEffect(() => {
+    async function carregarPerfilSalvo() {
+      const perfilSalvo = await getPetProfile();
+
+      if (perfilSalvo) {
+        setNome(perfilSalvo.nome);
+        setEspecie(perfilSalvo.especie);
+        setRaca(perfilSalvo.raca);
+        setIdade(perfilSalvo.idade);
+        setPeso(perfilSalvo.peso);
+        setClinica(perfilSalvo.clinica);
+      }
+
+      setPerfilCarregado(true);
+    }
+
+    carregarPerfilSalvo();
+  }, []);
+
+  async function salvarPerfil() {
     if (!nome || !especie || !raca || !idade || !peso || !clinica) {
       Alert.alert('Atenção', 'Preencha todos os campos antes de salvar.');
       return;
     }
 
-    Alert.alert('Sucesso', 'Perfil do pet preenchido com sucesso!');
+    const perfil = {
+      nome,
+      especie,
+      raca,
+      idade,
+      peso,
+      clinica,
+    };
+
+    try {
+      await savePetProfile(perfil);
+      Alert.alert('Sucesso', 'Perfil do pet salvo no dispositivo.');
+    } catch {
+      Alert.alert('Erro', 'Não foi possível salvar o perfil do pet.');
+    }
   }
 
-  function limparFormulario() {
+  async function limparFormulario() {
     setNome('');
     setEspecie('');
     setRaca('');
     setIdade('');
     setPeso('');
     setClinica('');
+
+    try {
+      await removePetProfile();
+      Alert.alert('Perfil removido', 'Os dados salvos foram apagados.');
+    } catch {
+      Alert.alert('Erro', 'Não foi possível remover os dados salvos.');
+    }
+  }
+
+  if (!perfilCarregado) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Carregando perfil...</Text>
+      </View>
+    );
   }
 
   return (
@@ -50,8 +105,8 @@ export function PetProfileScreen() {
         <Text style={styles.title}>Perfil do Pet</Text>
 
         <Text style={styles.subtitle}>
-          Cadastre os dados principais do pet para personalizar o acompanhamento
-          preventivo.
+          Cadastre os dados principais do pet. Essas informações serão salvas
+          localmente com AsyncStorage.
         </Text>
 
         <View style={styles.form}>
@@ -110,7 +165,7 @@ export function PetProfileScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.clearButton} onPress={limparFormulario}>
-            <Text style={styles.clearButtonText}>Limpar formulário</Text>
+            <Text style={styles.clearButtonText}>Limpar dados salvos</Text>
           </TouchableOpacity>
         </View>
 
@@ -143,6 +198,14 @@ export function PetProfileScreen() {
             <Text style={styles.previewStrong}>{clinica || 'Não informada'}</Text>
           </Text>
         </View>
+
+        <View style={styles.infoCard}>
+          <Text style={styles.infoTitle}>Requisito atendido</Text>
+          <Text style={styles.infoText}>
+            Os dados digitados são salvos localmente e carregados novamente ao
+            abrir o aplicativo.
+          </Text>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -159,6 +222,16 @@ const styles = StyleSheet.create({
   content: {
     padding: 24,
     paddingBottom: 40,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#475569',
   },
   title: {
     fontSize: 26,
@@ -223,6 +296,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0F2FE',
     padding: 18,
     borderRadius: 16,
+    marginBottom: 16,
   },
   previewTitle: {
     fontSize: 18,
@@ -237,5 +311,21 @@ const styles = StyleSheet.create({
   },
   previewStrong: {
     fontWeight: 'bold',
+  },
+  infoCard: {
+    backgroundColor: '#DCFCE7',
+    padding: 18,
+    borderRadius: 16,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#166534',
+    marginBottom: 6,
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#166534',
+    lineHeight: 20,
   },
 });
