@@ -1,21 +1,66 @@
-import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import { PreventiveItem } from '../components/PreventiveItem';
-import { preventiveItems } from '../data/mockData';
+import {
+  getPreventiveItems,
+  resetPreventiveItems,
+  savePreventiveItems,
+} from '../storage/preventiveStorage';
+import type { PreventiveItemType } from '../types/pet';
 
 export function PreventiveScreen() {
-  const [items, setItems] = useState(preventiveItems);
+  const [items, setItems] = useState<PreventiveItemType[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function carregarItens() {
+      const itensSalvos = await getPreventiveItems();
+
+      setItems(itensSalvos);
+      setLoading(false);
+    }
+
+    carregarItens();
+  }, []);
 
   const totalItems = items.length;
   const completedItems = items.filter((item) => item.done).length;
   const pendingItems = totalItems - completedItems;
 
-  function toggleItemDone(id: number) {
-    setItems((currentItems) =>
-      currentItems.map((item) =>
-        item.id === id ? { ...item, done: !item.done } : item
-      )
+  async function toggleItemDone(id: number) {
+    const updatedItems = items.map((item) =>
+      item.id === id ? { ...item, done: !item.done } : item
+    );
+
+    setItems(updatedItems);
+    await savePreventiveItems(updatedItems);
+  }
+
+  async function resetarCalendario() {
+    await resetPreventiveItems();
+
+    const itensPadrao = await getPreventiveItems();
+    setItems(itensPadrao);
+
+    Alert.alert(
+      'Calendário resetado',
+      'Os itens preventivos voltaram ao estado inicial.'
+    );
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Carregando calendário...</Text>
+      </View>
     );
   }
 
@@ -59,6 +104,18 @@ export function PreventiveScreen() {
           onToggle={() => toggleItemDone(item.id)}
         />
       ))}
+
+      <TouchableOpacity style={styles.resetButton} onPress={resetarCalendario}>
+        <Text style={styles.resetButtonText}>Resetar calendário</Text>
+      </TouchableOpacity>
+
+      <View style={styles.infoCard}>
+        <Text style={styles.infoTitle}>Persistência local ativa</Text>
+        <Text style={styles.infoText}>
+          Os status de feito e pendente são salvos com AsyncStorage e continuam
+          após recarregar o aplicativo.
+        </Text>
+      </View>
     </ScrollView>
   );
 }
@@ -71,6 +128,16 @@ const styles = StyleSheet.create({
   content: {
     padding: 24,
     paddingBottom: 40,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#475569',
   },
   title: {
     fontSize: 26,
@@ -113,5 +180,35 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#64748B',
     marginTop: 4,
+  },
+  resetButton: {
+    borderWidth: 1,
+    borderColor: '#EF4444',
+    padding: 16,
+    borderRadius: 14,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  resetButtonText: {
+    color: '#EF4444',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 15,
+  },
+  infoCard: {
+    backgroundColor: '#DCFCE7',
+    padding: 16,
+    borderRadius: 16,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#166534',
+    marginBottom: 6,
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#166534',
+    lineHeight: 20,
   },
 });
