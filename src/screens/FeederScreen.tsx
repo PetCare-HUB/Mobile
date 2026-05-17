@@ -1,33 +1,57 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text } from 'react-native';
+
+import { AlertCard } from '../components/AlertCard';
+import { SensorCard } from '../components/SensorCard';
+import { feederMetrics } from '../data/mockData';
 
 export function FeederScreen() {
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Comedouro Inteligente</Text>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Nível de ração</Text>
-        <Text style={styles.value}>35%</Text>
-      </View>
+      <Text style={styles.subtitle}>
+        O comedouro monitora nível de ração, consumo diário e horários de
+        refeição.
+      </Text>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Consumo de hoje</Text>
-        <Text style={styles.value}>220g</Text>
-      </View>
+      {feederMetrics.map((metric) => (
+        <SensorCard
+          key={metric.id}
+          title={metric.title}
+          value={metric.value}
+          description={metric.description}
+          status={metric.status}
+        />
+      ))}
 
-      <View style={styles.alertCard}>
-        <Text style={styles.alertText}>⚠️ Atenção: nível de ração abaixo do ideal.</Text>
-      </View>
-    </View>
+      <AlertCard
+        title="Reposição recomendada"
+        message="O nível de ração está abaixo do ideal. O tutor deve verificar o reservatório."
+        severity="medium"
+      />
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24 },
-  title: { fontSize: 26, fontWeight: 'bold', color: '#0F172A', marginBottom: 20 },
-  card: { backgroundColor: '#FFFFFF', padding: 18, borderRadius: 14, marginBottom: 12 },
-  label: { fontSize: 14, color: '#64748B', marginBottom: 6 },
-  value: { fontSize: 22, fontWeight: 'bold', color: '#0F172A' },
-  alertCard: { backgroundColor: '#FEF3C7', padding: 18, borderRadius: 14 },
-  alertText: { color: '#92400E', fontWeight: '600', fontSize: 16 },
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  content: {
+    padding: 24,
+    paddingBottom: 40,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: '#475569',
+    lineHeight: 22,
+    marginBottom: 20,
+  },
 });

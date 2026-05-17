@@ -1,37 +1,50 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text } from 'react-native';
+
+import { SensorCard } from '../components/SensorCard';
+import { environmentMetrics } from '../data/mockData';
 
 export function EnvironmentScreen() {
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Ambiente</Text>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Temperatura</Text>
-        <Text style={styles.value}>24°C</Text>
-      </View>
+      <Text style={styles.subtitle}>
+        Os sensores ambientais ajudam a identificar riscos relacionados a
+        temperatura, umidade, qualidade do ar e presença no cômodo.
+      </Text>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Umidade</Text>
-        <Text style={styles.value}>62%</Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.label}>Qualidade do ar</Text>
-        <Text style={styles.value}>🟢 Boa</Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.label}>Presença</Text>
-        <Text style={styles.value}>Pet detectado no cômodo</Text>
-      </View>
-    </View>
+      {environmentMetrics.map((metric) => (
+        <SensorCard
+          key={metric.id}
+          title={metric.title}
+          value={metric.value}
+          description={metric.description}
+          status={metric.status}
+        />
+      ))}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24 },
-  title: { fontSize: 26, fontWeight: 'bold', color: '#0F172A', marginBottom: 20 },
-  card: { backgroundColor: '#FFFFFF', padding: 18, borderRadius: 14, marginBottom: 12 },
-  label: { fontSize: 14, color: '#64748B', marginBottom: 6 },
-  value: { fontSize: 22, fontWeight: 'bold', color: '#0F172A' },
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  content: {
+    padding: 24,
+    paddingBottom: 40,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: '#475569',
+    lineHeight: 22,
+    marginBottom: 20,
+  },
 });

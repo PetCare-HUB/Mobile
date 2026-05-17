@@ -1,32 +1,50 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text } from 'react-native';
+
+import { PreventiveItem } from '../components/PreventiveItem';
+import { preventiveItems } from '../data/mockData';
 
 export function PreventiveScreen() {
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Calendário Preventivo</Text>
 
-      <View style={styles.card}>
-        <Text style={styles.itemTitle}>Vacina V10</Text>
-        <Text style={styles.itemText}>Próxima dose: 25/05/2026</Text>
-      </View>
+      <Text style={styles.subtitle}>
+        Acompanhe vacinas, check-ups, vermífugos e medicamentos para manter a
+        rotina de cuidado em dia.
+      </Text>
 
-      <View style={styles.card}>
-        <Text style={styles.itemTitle}>Check-up anual</Text>
-        <Text style={styles.itemText}>Agendado para: 10/06/2026</Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.itemTitle}>Vermífugo</Text>
-        <Text style={styles.itemText}>Pendente nos próximos 7 dias</Text>
-      </View>
-    </View>
+      {preventiveItems.map((item) => (
+        <PreventiveItem
+          key={item.id}
+          title={item.title}
+          date={item.date}
+          description={item.description}
+          done={item.done}
+        />
+      ))}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24 },
-  title: { fontSize: 26, fontWeight: 'bold', color: '#0F172A', marginBottom: 20 },
-  card: { backgroundColor: '#FFFFFF', padding: 18, borderRadius: 14, marginBottom: 12 },
-  itemTitle: { fontSize: 18, fontWeight: 'bold', color: '#0F172A' },
-  itemText: { fontSize: 15, color: '#475569', marginTop: 6 },
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  content: {
+    padding: 24,
+    paddingBottom: 40,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: '#475569',
+    lineHeight: 22,
+    marginBottom: 20,
+  },
 });
