@@ -50,9 +50,6 @@ export function FeederScreen() {
           severity="medium"
         />
       )}
-      <Text style={styles.footerNote}>
-        * Último estado conhecido restaurado do AsyncStorage
-      </Text>
     </ScrollView>
   );
 }

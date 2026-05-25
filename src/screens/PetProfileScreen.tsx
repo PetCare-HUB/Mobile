@@ -144,7 +144,6 @@ export function PetProfileScreen() {
 
         <View style={styles.prefsCard}>
           <Text style={styles.prefsTitle}>Preferências de notificação</Text>
-          <Text style={styles.prefsSubtitle}>Salvo localmente no AsyncStorage</Text>
 
           {[
             { label: 'Alertas de saúde', value: notifAlertas, toggle: () => setNotifAlertas((v) => !v) },
@@ -158,13 +157,6 @@ export function PetProfileScreen() {
               </TouchableOpacity>
             </View>
           ))}
-        </View>
-
-        <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>Requisito atendido</Text>
-          <Text style={styles.infoText}>
-            Os dados digitados são salvos localmente e carregados novamente ao abrir o aplicativo.
-          </Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -199,7 +191,6 @@ const styles = StyleSheet.create({
   toggleActive: { backgroundColor: '#2563EB' },
   toggleThumb: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#FFFFFF', alignSelf: 'flex-start' },
   toggleThumbActive: { alignSelf: 'flex-end' },
-  infoCard: { backgroundColor: '#DCFCE7', padding: 18, borderRadius: 16 },
   infoTitle: { fontSize: 16, fontWeight: 'bold', color: '#166534', marginBottom: 6 },
   infoText: { fontSize: 14, color: '#166534', lineHeight: 20 },
 });

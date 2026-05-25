@@ -41,9 +41,6 @@ export function EnvironmentScreen() {
           status={metric.status}
         />
       ))}
-      <Text style={styles.footerNote}>
-        * Último estado conhecido restaurado do AsyncStorage
-      </Text>
     </ScrollView>
   );
 }
