@@ -180,7 +180,7 @@ petcare-hub-mobile/
 ### 1. Clonar o repositório
 
 ```bash
-git clone COLE_AQUI_O_LINK_DO_REPOSITORIO
+https://github.com/PetCare-HUB/Mobile.git
 cd petcare-hub-mobile
 ```
 
@@ -244,7 +244,7 @@ npx expo start --ios
 ## 🎥 Vídeo de demonstração
 
 ```
-COLE_AQUI_O_LINK_DO_VIDEO_NAO_LISTADO
+https://youtu.be/Vm_NwziuN7A
 ```
 
 O vídeo demonstra:
