@@ -95,14 +95,6 @@ export function PreventiveScreen() {
       <TouchableOpacity style={styles.resetButton} onPress={resetarCalendario}>
         <Text style={styles.resetButtonText}>Resetar calendário</Text>
       </TouchableOpacity>
-
-      <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>Persistência local ativa</Text>
-        <Text style={styles.infoText}>
-          Os status e o streak de adesão são salvos com AsyncStorage e continuam
-          após recarregar o aplicativo.
-        </Text>
-      </View>
     </ScrollView>
   );
 }
@@ -122,7 +114,6 @@ const styles = StyleSheet.create({
   summaryLabel: { fontSize: 13, color: '#64748B', marginTop: 4 },
   resetButton: { borderWidth: 1, borderColor: '#EF4444', padding: 16, borderRadius: 14, marginTop: 8, marginBottom: 16 },
   resetButtonText: { color: '#EF4444', fontWeight: 'bold', textAlign: 'center', fontSize: 15 },
-  infoCard: { backgroundColor: '#DCFCE7', padding: 16, borderRadius: 16 },
   infoTitle: { fontSize: 16, fontWeight: 'bold', color: '#166534', marginBottom: 6 },
   infoText: { fontSize: 14, color: '#166534', lineHeight: 20 },
 });
