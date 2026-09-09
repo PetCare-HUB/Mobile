@@ -42,16 +42,30 @@ async function requestWithColdStartRetry(
   }
 }
 
-export function login(email: string, password: string, onSlowConnection?: () => void) {
-  return requestWithColdStartRetry('/auth/login', { email, password }, onSlowConnection);
+export async function login(email: string, password: string, onSlowConnection?: () => void) {
+  try {
+    return await requestWithColdStartRetry('/auth/login', { email, password }, onSlowConnection);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      throw new ApiError(401, 'E-mail ou senha incorretos.');
+    }
+    throw error;
+  }
 }
 
-export function ativarConta(
+export async function ativarConta(
   nome: string,
   cpf: string,
   email: string,
   senha: string,
   onSlowConnection?: () => void
 ) {
-  return requestWithColdStartRetry('/auth/ativar-conta', { nome, cpf, email, senha }, onSlowConnection);
+  try {
+    return await requestWithColdStartRetry('/auth/ativar-conta', { nome, cpf, email, senha }, onSlowConnection);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      throw new ApiError(401, 'Não localizamos um pré-cadastro com esses dados. Verifique nome, CPF e e-mail informados pela clínica.');
+    }
+    throw error;
+  }
 }

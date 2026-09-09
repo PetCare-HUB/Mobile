@@ -23,7 +23,7 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Início',
-          headerTitle: 'PetCare Hub',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="home-outline" color={color} size={size} />
           ),
