@@ -1,3 +1,5 @@
+import type { HealthStatus } from '../types/pet';
+
 export const colors = {
   background: '#F7FAF9',
   surface: '#FFFFFF',
@@ -21,16 +23,8 @@ export const colors = {
   aiPurple: '#6D63D9',
 } as const;
 
-export type HealthScoreBand = 'good' | 'warn' | 'bad';
-
-export function healthScoreBand(score: number): HealthScoreBand {
-  if (score >= 80) return 'good';
-  if (score >= 50) return 'warn';
-  return 'bad';
-}
-
-export const healthScoreBandColor: Record<HealthScoreBand, string> = {
-  good: colors.success,
-  warn: colors.warning,
-  bad: colors.danger,
+export const healthStatusColor: Record<HealthStatus, string> = {
+  healthy: colors.success,
+  attention: colors.warning,
+  risk: colors.danger,
 };

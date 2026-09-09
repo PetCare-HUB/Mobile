@@ -2,34 +2,43 @@ import { StyleSheet, Text } from 'react-native';
 
 import { AlertCard } from '../components/AlertCard';
 import { EmptyState } from '../components/EmptyState';
+import { QueryState } from '../components/QueryState';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { SectionHeader } from '../components/SectionHeader';
 import { colors, spacing, typography } from '../theme';
-import { homeAlerts } from '../data/mockData';
+import { usePetContext } from '../contexts/pet/PetContext';
+import { usePetAlerts } from '../hooks/queries/usePetAlerts';
+import { alertToUiShape } from '../utils/alertMappers';
 
 type AlertaDetailScreenProps = {
   id: string;
 };
 
 export function AlertaDetailScreen({ id }: AlertaDetailScreenProps) {
-  const alert = homeAlerts.find((item) => String(item.id) === id);
+  const { selectedPetId } = usePetContext();
+  const alertsQuery = usePetAlerts(selectedPetId);
 
-  if (!alert) {
-    return (
-      <ScreenContainer>
-        <EmptyState title="Alerta não encontrado" description="Este alerta pode já ter sido resolvido." />
-      </ScreenContainer>
-    );
-  }
+  const alerts = alertsQuery.data?.map(alertToUiShape) ?? [];
+  const alert = alerts.find((item) => String(item.id) === id) ?? null;
 
   return (
     <ScreenContainer>
-      <SectionHeader title="Detalhe do alerta" subtitle={alert.timeAgo} level="page" />
-      <AlertCard title={alert.title} message={alert.message} severity={alert.severity} />
-      <Text style={styles.orientation}>
-        Houve alteração no padrão recente. Observe o comportamento do pet e, caso a alteração
-        persista, procure orientação da clínica responsável.
-      </Text>
+      <QueryState isLoading={alertsQuery.isLoading} isError={alertsQuery.isError} data={alerts} onRetry={alertsQuery.refetch}>
+        {() =>
+          !alert ? (
+            <EmptyState title="Alerta não encontrado" description="Este alerta pode já ter sido resolvido." />
+          ) : (
+            <>
+              <SectionHeader title="Detalhe do alerta" subtitle={alert.timeAgo} level="page" />
+              <AlertCard title={alert.title} message={alert.message} severity={alert.severity} />
+              <Text style={styles.orientation}>
+                Houve alteração no padrão recente. Observe o comportamento do pet e, caso a alteração
+                persista, procure orientação da clínica responsável.
+              </Text>
+            </>
+          )
+        }
+      </QueryState>
     </ScreenContainer>
   );
 }

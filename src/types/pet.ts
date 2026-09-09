@@ -1,15 +1,5 @@
 export type HealthStatus = 'healthy' | 'attention' | 'risk';
 
-export type PetSummary = {
-  id: number;
-  nome: string;
-  especie: string;
-  raca: string;
-  score: number;
-  status: HealthStatus;
-  atividadeAtual: string;
-};
-
 export type SensorMetric = {
   id: number;
   title: string;

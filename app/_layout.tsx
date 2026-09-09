@@ -8,6 +8,7 @@ import { View } from 'react-native';
 
 import { queryClient } from '../src/services/api/queryClient';
 import { AuthProvider, useAuth } from '../src/contexts/auth/AuthContext';
+import { PetProvider } from '../src/contexts/pet/PetContext';
 import { colors } from '../src/theme';
 
 function RootNavigation() {
@@ -39,8 +40,10 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <RootNavigation />
-          <StatusBar style="dark" />
+          <PetProvider>
+            <RootNavigation />
+            <StatusBar style="dark" />
+          </PetProvider>
         </AuthProvider>
       </QueryClientProvider>
     </SafeAreaProvider>

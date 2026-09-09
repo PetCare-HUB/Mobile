@@ -1,50 +1,7 @@
 import type {
-  AlertItem,
-  PetSummary,
   PreventiveItemType,
   SensorMetric,
 } from '../types/pet';
-
-export const petSummary: PetSummary = {
-  id: 1,
-  nome: 'Rex',
-  especie: 'Cachorro',
-  raca: 'Golden Retriever',
-  score: 82,
-  status: 'healthy',
-  atividadeAtual: 'Ativo',
-};
-
-export const homeAlerts: AlertItem[] = [
-  {
-    id: 1,
-    title: 'Redução na atividade',
-    message: 'Rex está menos ativo que o normal nas últimas 24h. Observe seu comportamento.',
-    severity: 'high',
-    timeAgo: 'Há 2 horas',
-  },
-  {
-    id: 2,
-    title: 'Bateria da coleira baixa',
-    message: 'A bateria está com 20%. Carregue em breve.',
-    severity: 'medium',
-    timeAgo: 'Há 5 horas',
-  },
-  {
-    id: 3,
-    title: 'Ambiente em atenção',
-    message: 'Temperatura acima do ideal (28°C). Verifique o ambiente.',
-    severity: 'low',
-    timeAgo: 'Hoje, 10:24',
-  },
-  {
-    id: 4,
-    title: 'Vacina anual próxima',
-    message: 'Está na hora da vacina anual do Rex.',
-    severity: 'low',
-    timeAgo: 'Em 12 dias',
-  },
-];
 
 export const collarMetrics: SensorMetric[] = [
   {

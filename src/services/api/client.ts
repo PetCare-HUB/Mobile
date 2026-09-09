@@ -58,3 +58,19 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
     clearTimeout(timeout);
   }
 }
+
+const COLD_START_TIMEOUT_MS = 60_000;
+const RETRY_DELAY_MS = 3_000;
+
+export async function requestWithColdStartRetry<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
+  try {
+    return await apiRequest<T>(path, { timeoutMs: COLD_START_TIMEOUT_MS, ...options });
+  } catch (error) {
+    const isRetryable = error instanceof ApiError && (error.status === 503 || error.status === 0);
+    if (!isRetryable) throw error;
+
+    await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+
+    return await apiRequest<T>(path, { timeoutMs: COLD_START_TIMEOUT_MS, ...options });
+  }
+}

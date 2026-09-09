@@ -1,19 +1,21 @@
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
-import { colors, healthScoreBand, healthScoreBandColor, typography } from '../theme';
+import type { HealthStatus } from '../types/pet';
+import { colors, healthStatusColor, typography } from '../theme';
 
 type HealthScoreRingProps = {
   score: number;
+  status: HealthStatus;
   size?: number;
   strokeWidth?: number;
 };
 
-export function HealthScoreRing({ score, size = 116, strokeWidth = 10 }: HealthScoreRingProps) {
+export function HealthScoreRing({ score, status, size = 116, strokeWidth = 10 }: HealthScoreRingProps) {
   const clamped = Math.max(0, Math.min(100, score));
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = circumference * (1 - clamped / 100);
-  const color = healthScoreBandColor[healthScoreBand(clamped)];
+  const color = healthStatusColor[status];
 
   return (
     <View style={{ width: size, height: size }}>

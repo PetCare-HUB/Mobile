@@ -7,10 +7,17 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { HealthScore } from '../components/HealthScore';
 import { PetAvatar } from '../components/PetAvatar';
+import { PetSwitcherModal } from '../components/PetSwitcherModal';
+import { QueryState } from '../components/QueryState';
 import { colors, radius, spacing, typography } from '../theme';
-import { collarMetrics, environmentMetrics, feederMetrics, homeAlerts, petSummary } from '../data/mockData';
-import { getPetProfile, type PetProfile } from '../storage/petStorage';
+import { usePetContext } from '../contexts/pet/PetContext';
+import { usePetAlerts } from '../hooks/queries/usePetAlerts';
+import { usePetScore } from '../hooks/queries/usePetScore';
+// Atividade/Alimentação/Ambiente ainda são mock nesta etapa — a integração real
+// deles depende de GET /pets/{id}/timeline e fica para uma próxima rodada.
+import { collarMetrics, environmentMetrics, feederMetrics } from '../data/mockData';
 import { getPreventiveItems } from '../storage/preventiveStorage';
+import type { Especie, ScoreCategoria } from '../types/api';
 import type { HealthStatus, PreventiveItemType, SensorMetric } from '../types/pet';
 
 const STATUS_PRIORITY: Record<HealthStatus, number> = { risk: 2, attention: 1, healthy: 0 };
@@ -21,6 +28,18 @@ function worstStatus(metrics: SensorMetric[]): HealthStatus {
     return STATUS_PRIORITY[status] > STATUS_PRIORITY[worst] ? status : worst;
   }, 'healthy');
 }
+
+const ESPECIE_LABEL: Record<Especie, string> = {
+  CAO: 'Cachorro',
+  GATO: 'Gato',
+  OUTRO: 'Outro',
+};
+
+const CATEGORIA_TO_STATUS: Record<ScoreCategoria, HealthStatus> = {
+  VERDE: 'healthy',
+  AMARELO: 'attention',
+  VERMELHO: 'risk',
+};
 
 type SummaryTile = {
   key: string;
@@ -33,7 +52,18 @@ type SummaryTile = {
 
 export function HomeScreen() {
   const router = useRouter();
-  const [petProfile, setPetProfile] = useState<PetProfile | null>(null);
+  const {
+    pets,
+    selectedPetId,
+    selectedPet,
+    setSelectedPetId,
+    isLoading: petsLoading,
+    isError: petsError,
+    refetch: refetchPets,
+  } = usePetContext();
+  const scoreQuery = usePetScore(selectedPetId);
+  const alertsQuery = usePetAlerts(selectedPetId);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
   const [preventivos, setPreventivos] = useState<PreventiveItemType[]>([]);
 
   useFocusEffect(
@@ -41,14 +71,8 @@ export function HomeScreen() {
       let isActive = true;
 
       async function carregar() {
-        const [perfil, itens] = await Promise.all([
-          getPetProfile(),
-          getPreventiveItems(),
-        ]);
-        if (isActive) {
-          setPetProfile(perfil);
-          setPreventivos(itens);
-        }
+        const itens = await getPreventiveItems();
+        if (isActive) setPreventivos(itens);
       }
 
       carregar();
@@ -56,14 +80,14 @@ export function HomeScreen() {
     }, [])
   );
 
-  const petName = petProfile?.nome || petSummary.nome;
-  const petSpecies = petProfile?.especie || petSummary.especie;
-  const petBreed = petProfile?.raca || petSummary.raca;
+  const petName = selectedPet?.nome ?? '';
+  const petSpecies = selectedPet ? ESPECIE_LABEL[selectedPet.especie] : '';
+  const petBreed = selectedPet?.raca ?? '';
 
   const activityStatus = collarMetrics[0]?.status ?? 'healthy';
   const feederStatus = feederMetrics[0]?.status ?? 'healthy';
   const environmentStatus = worstStatus(environmentMetrics);
-  const alertsCount = homeAlerts.length;
+  const alertsCount = alertsQuery.data?.length ?? 0;
 
   const summaryTiles: SummaryTile[] = [
     {
@@ -125,40 +149,64 @@ export function HomeScreen() {
       </SafeAreaView>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.petRow}>
-          <PetAvatar name={petName} size={48} />
-          <View style={styles.petRowText}>
-            <View style={styles.petNameRow}>
-              <Text style={styles.petName}>{petName}</Text>
-              <MaterialCommunityIcons name="chevron-down" size={18} color={colors.textSecondary} />
-            </View>
-            <Text style={styles.petSubtitle}>{petSpecies} • {petBreed}</Text>
-          </View>
-        </View>
+        <QueryState
+          isLoading={petsLoading}
+          isError={petsError}
+          data={pets}
+          isEmpty={(p) => p.length === 0}
+          onRetry={refetchPets}
+          emptyTitle="Nenhum pet cadastrado"
+          emptyDescription="Assim que sua clínica vincular um pet à sua conta, ele aparece aqui."
+        >
+          {() => (
+            <>
+              <TouchableOpacity style={styles.petRow} onPress={() => setSwitcherOpen(true)} activeOpacity={0.8}>
+                <PetAvatar name={petName} size={48} />
+                <View style={styles.petRowText}>
+                  <View style={styles.petNameRow}>
+                    <Text style={styles.petName}>{petName}</Text>
+                    <MaterialCommunityIcons name="chevron-down" size={18} color={colors.textSecondary} />
+                  </View>
+                  <Text style={styles.petSubtitle}>{petSpecies} • {petBreed}</Text>
+                </View>
+              </TouchableOpacity>
 
-        <HealthScore
-          petName={petName}
-          score={petSummary.score}
-          status={petSummary.status}
-          onPress={() => router.push('/saude')}
-        />
+              <QueryState
+                isLoading={scoreQuery.isLoading}
+                isError={scoreQuery.isError}
+                data={scoreQuery.data}
+                onRetry={scoreQuery.refetch}
+                emptyTitle="Score indisponível"
+              >
+                {(score) => (
+                  <HealthScore
+                    petName={petName}
+                    score={score.scoreTotal}
+                    status={CATEGORIA_TO_STATUS[score.categoria]}
+                    onPress={() => router.push('/saude')}
+                  />
+                )}
+              </QueryState>
 
-        <View style={styles.grid}>
-          {summaryTiles.map((tile) => (
-            <TouchableOpacity
-              key={tile.key}
-              style={styles.gridTile}
-              onPress={() => handleTilePress(tile.key)}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.gridIcon, { backgroundColor: tile.backgroundColor }]}>
-                <MaterialCommunityIcons name={tile.icon} size={20} color={tile.iconColor} />
+              <View style={styles.grid}>
+                {summaryTiles.map((tile) => (
+                  <TouchableOpacity
+                    key={tile.key}
+                    style={styles.gridTile}
+                    onPress={() => handleTilePress(tile.key)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[styles.gridIcon, { backgroundColor: tile.backgroundColor }]}>
+                      <MaterialCommunityIcons name={tile.icon} size={20} color={tile.iconColor} />
+                    </View>
+                    <Text style={styles.gridLabel}>{tile.label}</Text>
+                    <Text style={[styles.gridValue, { color: tile.iconColor }]}>{tile.value}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-              <Text style={styles.gridLabel}>{tile.label}</Text>
-              <Text style={[styles.gridValue, { color: tile.iconColor }]}>{tile.value}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+            </>
+          )}
+        </QueryState>
 
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>Próximas ações</Text>
@@ -187,6 +235,14 @@ export function HomeScreen() {
           </TouchableOpacity>
         ))}
       </ScrollView>
+
+      <PetSwitcherModal
+        visible={switcherOpen}
+        onClose={() => setSwitcherOpen(false)}
+        pets={pets}
+        selectedPetId={selectedPetId}
+        onSelect={setSelectedPetId}
+      />
     </View>
   );
 }

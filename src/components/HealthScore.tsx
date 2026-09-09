@@ -1,7 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { HealthStatus } from '../types/pet';
-import { colors, healthScoreBand, healthScoreBandColor, radius, shadows, spacing, typography } from '../theme';
+import { colors, healthStatusColor, radius, shadows, spacing, typography } from '../theme';
 import { HealthScoreRing } from './HealthScoreRing';
 
 type HealthScoreProps = {
@@ -24,12 +24,12 @@ const statusDescription: Record<HealthStatus, string> = {
 };
 
 export function HealthScore({ petName, score, status, onPress }: HealthScoreProps) {
-  const color = healthScoreBandColor[healthScoreBand(score)];
+  const color = healthStatusColor[status];
   const Container = onPress ? TouchableOpacity : View;
 
   return (
     <Container style={styles.card} onPress={onPress} activeOpacity={onPress ? 0.8 : undefined}>
-      <HealthScoreRing score={score} />
+      <HealthScoreRing score={score} status={status} />
       <View style={styles.info}>
         <Text style={[styles.status, { color }]}>{getStatusLabel(status)}</Text>
         <Text style={styles.description}>

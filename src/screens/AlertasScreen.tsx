@@ -4,11 +4,14 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import { EmptyState } from '../components/EmptyState';
+import { QueryState } from '../components/QueryState';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { SectionHeader } from '../components/SectionHeader';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { colors, radius, spacing, typography } from '../theme';
-import { homeAlerts } from '../data/mockData';
+import { usePetContext } from '../contexts/pet/PetContext';
+import { usePetAlerts } from '../hooks/queries/usePetAlerts';
+import { alertToUiShape } from '../utils/alertMappers';
 import type { AlertItem } from '../types/pet';
 
 type FilterKey = 'todos' | 'importante' | 'atencao' | 'informativo';
@@ -36,45 +39,54 @@ const SEVERITY_STYLE: Record<AlertItem['severity'], { color: string; background:
 export function AlertasScreen() {
   const router = useRouter();
   const [filter, setFilter] = useState<FilterKey>('todos');
+  const { selectedPetId } = usePetContext();
+  const alertsQuery = usePetAlerts(selectedPetId);
 
+  const alerts = (alertsQuery.data ?? []).map(alertToUiShape);
   const severity = SEVERITY_BY_FILTER[filter];
-  const filteredAlerts = severity ? homeAlerts.filter((alert) => alert.severity === severity) : homeAlerts;
+  const filteredAlerts = severity ? alerts.filter((alert) => alert.severity === severity) : alerts;
 
   return (
     <ScreenContainer>
       <SectionHeader
         title="Alertas"
-        subtitle="Acompanhe os sinais identificados nos sensores do Rex."
+        subtitle="Acompanhe os sinais identificados nos sensores do pet."
         level="page"
       />
 
       <SegmentedControl segments={FILTERS} value={filter} onChange={setFilter} />
 
-      {filteredAlerts.length === 0 ? (
-        <EmptyState title="Nenhum alerta por aqui" description="Não há alertas nessa categoria no momento." />
-      ) : (
-        filteredAlerts.map((alert) => {
-          const style = SEVERITY_STYLE[alert.severity];
-          return (
-            <TouchableOpacity
-              key={alert.id}
-              style={styles.row}
-              onPress={() => router.push(`/alertas/${alert.id}`)}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.icon, { backgroundColor: style.background }]}>
-                <MaterialCommunityIcons name={style.icon} size={20} color={style.color} />
-              </View>
-              <View style={styles.text}>
-                <Text style={[styles.title, { color: style.color }]}>{alert.title}</Text>
-                <Text style={styles.timeAgo}>{alert.timeAgo}</Text>
-                <Text style={styles.message}>{alert.message}</Text>
-              </View>
-              <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-          );
-        })
-      )}
+      <QueryState isLoading={alertsQuery.isLoading} isError={alertsQuery.isError} data={alerts} onRetry={alertsQuery.refetch}>
+        {() =>
+          filteredAlerts.length === 0 ? (
+            <EmptyState title="Nenhum alerta por aqui" description="Não há alertas nessa categoria no momento." />
+          ) : (
+            <>
+              {filteredAlerts.map((alert) => {
+                const style = SEVERITY_STYLE[alert.severity];
+                return (
+                  <TouchableOpacity
+                    key={alert.id}
+                    style={styles.row}
+                    onPress={() => router.push(`/alertas/${alert.id}`)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[styles.icon, { backgroundColor: style.background }]}>
+                      <MaterialCommunityIcons name={style.icon} size={20} color={style.color} />
+                    </View>
+                    <View style={styles.text}>
+                      <Text style={[styles.title, { color: style.color }]}>{alert.title}</Text>
+                      <Text style={styles.timeAgo}>{alert.timeAgo}</Text>
+                      <Text style={styles.message}>{alert.message}</Text>
+                    </View>
+                    <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                );
+              })}
+            </>
+          )
+        }
+      </QueryState>
     </ScreenContainer>
   );
 }
