@@ -1,7 +1,4 @@
-import type {
-  PreventiveItemType,
-  SensorMetric,
-} from '../types/pet';
+import type { SensorMetric } from '../types/pet';
 
 export const collarMetrics: SensorMetric[] = [
   {
@@ -121,56 +118,4 @@ export const petTimeline = [
   { id: 2, date: '01/09', title: 'Consulta preventiva' },
   { id: 3, date: '25/08', title: 'Score 84 → 89' },
   { id: 4, date: '12/08', title: 'Vacina aplicada' },
-];
-
-export const preventiveItems: PreventiveItemType[] = [
-  {
-    id: 1,
-    title: 'Vacina anual',
-    tipo: 'VACINA',
-    date: 'Em 12 dias – 15/12/2026',
-    description: 'Reforço recomendado para manter o protocolo vacinal em dia.',
-    done: false,
-  },
-  {
-    id: 2,
-    title: 'Check-up preventivo',
-    tipo: 'RETORNO',
-    date: 'Em 45 dias – 18/01/2027',
-    description: 'Consulta preventiva para avaliação geral de saúde.',
-    done: false,
-  },
-  {
-    id: 3,
-    title: 'Vermífugo',
-    tipo: 'VERMIFUGO',
-    date: 'Concluído em 10/09/2026',
-    description: 'Controle preventivo contra verminoses.',
-    done: true,
-  },
-  {
-    id: 4,
-    title: 'Medicamento diário',
-    tipo: 'MEDICAMENTO',
-    date: 'Hoje',
-    description: 'Controle de adesão ao tratamento indicado pela clínica.',
-    done: true,
-  },
-  {
-    id: 5,
-    title: 'Exame de sangue',
-    tipo: 'CHECKUP',
-    date: 'Em 3 meses – 10/02/2027',
-    description: 'Exame preventivo de rotina.',
-    done: false,
-  },
-  {
-    id: 6,
-    title: 'Limpeza dental',
-    tipo: 'CHECKUP',
-    date: 'Atrasado há 5 dias – 01/11/2026',
-    description: 'Procedimento preventivo de higiene bucal.',
-    done: false,
-    overdue: true,
-  },
 ];

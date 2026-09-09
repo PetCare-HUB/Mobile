@@ -7,6 +7,7 @@ import { EmptyState } from './EmptyState';
 type QueryStateProps<T> = {
   isLoading: boolean;
   isError: boolean;
+  error?: unknown;
   data: T | null | undefined;
   isEmpty?: (data: T) => boolean;
   onRetry?: () => void;
@@ -19,6 +20,7 @@ type QueryStateProps<T> = {
 export function QueryState<T>({
   isLoading,
   isError,
+  error,
   data,
   isEmpty,
   onRetry,
@@ -36,9 +38,10 @@ export function QueryState<T>({
   }
 
   if (isError) {
+    const detail = error instanceof Error ? error.message : 'Verifique sua conexão e tente novamente.';
     return (
       <View style={styles.center}>
-        <EmptyState title={errorTitle} description="Verifique sua conexão e tente novamente." icon="wifi-off" />
+        <EmptyState title={errorTitle} description={detail} icon="wifi-off" />
         {onRetry ? <Button label="Tentar novamente" variant="secondary" onPress={onRetry} style={styles.retryButton} /> : null}
       </View>
     );

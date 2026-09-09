@@ -1,5 +1,4 @@
-import { useCallback, useState } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,12 +12,13 @@ import { colors, radius, spacing, typography } from '../theme';
 import { usePetContext } from '../contexts/pet/PetContext';
 import { usePetAlerts } from '../hooks/queries/usePetAlerts';
 import { usePetScore } from '../hooks/queries/usePetScore';
+import { usePreventivePlan } from '../hooks/queries/usePreventivePlan';
 // Atividade/Alimentação/Ambiente ainda são mock nesta etapa — a integração real
 // deles depende de GET /pets/{id}/timeline e fica para uma próxima rodada.
 import { collarMetrics, environmentMetrics, feederMetrics } from '../data/mockData';
-import { getPreventiveItems } from '../storage/preventiveStorage';
+import { formatIsoDateBr } from '../utils/preventiveMappers';
 import type { Especie, ScoreCategoria } from '../types/api';
-import type { HealthStatus, PreventiveItemType, SensorMetric } from '../types/pet';
+import type { HealthStatus, SensorMetric } from '../types/pet';
 
 const STATUS_PRIORITY: Record<HealthStatus, number> = { risk: 2, attention: 1, healthy: 0 };
 
@@ -59,26 +59,17 @@ export function HomeScreen() {
     setSelectedPetId,
     isLoading: petsLoading,
     isError: petsError,
+    error: petsErrorDetail,
     refetch: refetchPets,
   } = usePetContext();
   const scoreQuery = usePetScore(selectedPetId);
   const alertsQuery = usePetAlerts(selectedPetId);
+  const preventiveQuery = usePreventivePlan(selectedPetId);
   const [switcherOpen, setSwitcherOpen] = useState(false);
-  const [preventivos, setPreventivos] = useState<PreventiveItemType[]>([]);
 
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-
-      async function carregar() {
-        const itens = await getPreventiveItems();
-        if (isActive) setPreventivos(itens);
-      }
-
-      carregar();
-      return () => { isActive = false; };
-    }, [])
-  );
+  const upcomingItems = (preventiveQuery.data ?? [])
+    .filter((evento) => evento.status === 'PENDENTE')
+    .slice(0, 2);
 
   const petName = selectedPet?.nome ?? '';
   const petSpecies = selectedPet ? ESPECIE_LABEL[selectedPet.especie] : '';
@@ -152,6 +143,7 @@ export function HomeScreen() {
         <QueryState
           isLoading={petsLoading}
           isError={petsError}
+          error={petsErrorDetail}
           data={pets}
           isEmpty={(p) => p.length === 0}
           onRetry={refetchPets}
@@ -174,6 +166,7 @@ export function HomeScreen() {
               <QueryState
                 isLoading={scoreQuery.isLoading}
                 isError={scoreQuery.isError}
+                error={scoreQuery.error}
                 data={scoreQuery.data}
                 onRetry={scoreQuery.refetch}
                 emptyTitle="Score indisponível"
@@ -215,25 +208,37 @@ export function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {preventivos.slice(0, 2).map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            style={styles.actionRow}
-            onPress={() => router.push('/preventivo')}
-            activeOpacity={0.8}
-          >
-            <View style={styles.actionIcon}>
-              <MaterialCommunityIcons name={item.done ? 'check-circle-outline' : 'calendar-check-outline'} size={20} color={colors.bluePrimary} />
-            </View>
-            <View style={styles.actionText}>
-              <Text style={styles.actionTitle}>{item.title}</Text>
-              <View style={styles.actionMetaRow}>
-                <Text style={styles.actionDate}>{item.date}</Text>
-              </View>
-            </View>
-            <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
-        ))}
+        <QueryState
+          isLoading={preventiveQuery.isLoading}
+          isError={preventiveQuery.isError}
+          error={preventiveQuery.error}
+          data={upcomingItems}
+          isEmpty={(items) => items.length === 0}
+          onRetry={preventiveQuery.refetch}
+          emptyTitle="Nenhuma ação pendente"
+        >
+          {(items) =>
+            items.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.actionRow}
+                onPress={() => router.push('/preventivo')}
+                activeOpacity={0.8}
+              >
+                <View style={styles.actionIcon}>
+                  <MaterialCommunityIcons name="calendar-check-outline" size={20} color={colors.bluePrimary} />
+                </View>
+                <View style={styles.actionText}>
+                  <Text style={styles.actionTitle}>{item.descricao}</Text>
+                  <View style={styles.actionMetaRow}>
+                    <Text style={styles.actionDate}>{formatIsoDateBr(item.dataPrevista)}</Text>
+                  </View>
+                </View>
+                <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+            ))
+          }
+        </QueryState>
       </ScrollView>
 
       <PetSwitcherModal

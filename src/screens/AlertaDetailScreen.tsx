@@ -23,7 +23,13 @@ export function AlertaDetailScreen({ id }: AlertaDetailScreenProps) {
 
   return (
     <ScreenContainer>
-      <QueryState isLoading={alertsQuery.isLoading} isError={alertsQuery.isError} data={alerts} onRetry={alertsQuery.refetch}>
+      <QueryState
+        isLoading={alertsQuery.isLoading}
+        isError={alertsQuery.isError}
+        error={alertsQuery.error}
+        data={alerts}
+        onRetry={alertsQuery.refetch}
+      >
         {() =>
           !alert ? (
             <EmptyState title="Alerta não encontrado" description="Este alerta pode já ter sido resolvido." />

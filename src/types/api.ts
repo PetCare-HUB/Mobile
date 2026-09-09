@@ -66,3 +66,24 @@ export type AlertaSaudeResponse = {
   dataAlerta: string;
   dataResolucao: string | null;
 };
+
+export type TipoEventoPreventivo = 'VACINA' | 'CHECKUP' | 'VERMIFUGO' | 'RETORNO' | 'MEDICAMENTO';
+export type StatusEventoPreventivo = 'PENDENTE' | 'REALIZADO';
+
+export type EventoPreventivoResponse = {
+  id: number;
+  petId: number;
+  petNome: string;
+  tipo: TipoEventoPreventivo;
+  descricao: string;
+  dataPrevista: string;
+  status: StatusEventoPreventivo;
+  dataRealizacao: string | null;
+};
+
+export type EventoPreventivoRequest = {
+  petId: number;
+  tipo: TipoEventoPreventivo;
+  descricao: string;
+  dataPrevista: string;
+};

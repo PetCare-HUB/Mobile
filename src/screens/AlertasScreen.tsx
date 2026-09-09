@@ -56,7 +56,13 @@ export function AlertasScreen() {
 
       <SegmentedControl segments={FILTERS} value={filter} onChange={setFilter} />
 
-      <QueryState isLoading={alertsQuery.isLoading} isError={alertsQuery.isError} data={alerts} onRetry={alertsQuery.refetch}>
+      <QueryState
+        isLoading={alertsQuery.isLoading}
+        isError={alertsQuery.isError}
+        error={alertsQuery.error}
+        data={alerts}
+        onRetry={alertsQuery.refetch}
+      >
         {() =>
           filteredAlerts.length === 0 ? (
             <EmptyState title="Nenhum alerta por aqui" description="Não há alertas nessa categoria no momento." />

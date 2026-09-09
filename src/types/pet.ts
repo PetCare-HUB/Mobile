@@ -15,15 +15,3 @@ export type AlertItem = {
   severity: 'low' | 'medium' | 'high';
   timeAgo: string;
 };
-
-export type PreventiveTipo = 'VACINA' | 'CHECKUP' | 'VERMIFUGO' | 'RETORNO' | 'MEDICAMENTO';
-
-export type PreventiveItemType = {
-  id: number;
-  title: string;
-  tipo: PreventiveTipo;
-  date: string;
-  description: string;
-  done: boolean;
-  overdue?: boolean;
-};

@@ -1,6 +1,8 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Alert } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import * as authService from '../../services/auth/authService';
+import { setUnauthorizedHandler } from '../../services/api/client';
 import type { LoginResponse } from '../../services/auth/authService';
 
 const STORAGE_KEY = 'petcarehub_auth';
@@ -66,7 +68,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     rehydrate();
   }, []);
 
+  const sessionExpiredHandledRef = useRef(false);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      if (sessionExpiredHandledRef.current) return;
+      sessionExpiredHandledRef.current = true;
+      Alert.alert('Sessão expirada', 'Sua sessão expirou. Faça login novamente.');
+      logout();
+    });
+    return () => setUnauthorizedHandler(null);
+  }, []);
+
   function applySession(session: LoginResponse) {
+    sessionExpiredHandledRef.current = false;
     setState({
       token: session.token,
       role: session.role,

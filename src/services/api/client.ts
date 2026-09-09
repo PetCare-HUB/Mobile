@@ -1,5 +1,15 @@
 export const API_BASE_URL = 'https://petcare-hub-gokt.onrender.com';
 
+// O token JWT do backend expira em 30 minutos. Quando uma chamada autenticada
+// volta 401, isso quase sempre significa "sessão expirada" (não credenciais
+// erradas — isso só acontece em /auth/login, que nunca passa `token`).
+// O AuthProvider registra esse handler pra deslogar automaticamente.
+let unauthorizedHandler: (() => void) | null = null;
+
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  unauthorizedHandler = handler;
+}
+
 export class ApiError extends Error {
   status: number;
 
@@ -47,6 +57,9 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
         }
       } catch {
         // resposta sem corpo JSON, mantém a mensagem padrão
+      }
+      if (response.status === 401 && token) {
+        unauthorizedHandler?.();
       }
       throw new ApiError(response.status, message);
     }
