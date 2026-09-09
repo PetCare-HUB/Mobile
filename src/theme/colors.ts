@@ -1,8 +1,8 @@
 import type { HealthStatus } from '../types/pet';
 
 export const colors = {
-  background: '#F7FAF9',
-  surface: '#FFFFFF',
+  background: '#E6F1F8',
+  surface: '#F3F8FC',
 
   greenPrimary: '#087F68',
   greenSecondary: '#35B99A',

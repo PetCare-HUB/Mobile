@@ -87,3 +87,34 @@ export type EventoPreventivoRequest = {
   descricao: string;
   dataPrevista: string;
 };
+
+export type StatusAtividade = 'DORMINDO' | 'ATIVO' | 'BRINCANDO';
+
+export type LeituraColeiraResponse = {
+  id: number;
+  petId: number;
+  petNome: string;
+  statusAtividade: StatusAtividade;
+  nivelBateria: number;
+  timestampLeitura: string;
+};
+
+export type LeituraComedouroResponse = {
+  id: number;
+  petId: number;
+  petNome: string;
+  nivelRacaoPct: number;
+  pesoConsumidoG: number;
+  timestampLeitura: string;
+};
+
+export type LeituraAmbienteResponse = {
+  id: number;
+  petId: number;
+  petNome: string;
+  temperaturaAmbiente: number;
+  umidadePct: number;
+  qualidadeArPpm: number;
+  petPresente: boolean;
+  timestampLeitura: string;
+};

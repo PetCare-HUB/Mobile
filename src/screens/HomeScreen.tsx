@@ -10,24 +10,16 @@ import { PetSwitcherModal } from '../components/PetSwitcherModal';
 import { QueryState } from '../components/QueryState';
 import { colors, radius, spacing, typography } from '../theme';
 import { usePetContext } from '../contexts/pet/PetContext';
+import { useLeiturasAmbiente } from '../hooks/queries/useLeiturasAmbiente';
+import { useLeiturasColeira } from '../hooks/queries/useLeiturasColeira';
+import { useLeiturasComedouro } from '../hooks/queries/useLeiturasComedouro';
 import { usePetAlerts } from '../hooks/queries/usePetAlerts';
 import { usePetScore } from '../hooks/queries/usePetScore';
 import { usePreventivePlan } from '../hooks/queries/usePreventivePlan';
-// Atividade/Alimentação/Ambiente ainda são mock nesta etapa — a integração real
-// deles depende de GET /pets/{id}/timeline e fica para uma próxima rodada.
-import { collarMetrics, environmentMetrics, feederMetrics } from '../data/mockData';
+import { comfortLabel, STATUS_ATIVIDADE_LABEL } from '../utils/leituraMappers';
 import { formatIsoDateBr } from '../utils/preventiveMappers';
 import type { Especie, ScoreCategoria } from '../types/api';
-import type { HealthStatus, SensorMetric } from '../types/pet';
-
-const STATUS_PRIORITY: Record<HealthStatus, number> = { risk: 2, attention: 1, healthy: 0 };
-
-function worstStatus(metrics: SensorMetric[]): HealthStatus {
-  return metrics.reduce<HealthStatus>((worst, metric) => {
-    const status = metric.status ?? 'healthy';
-    return STATUS_PRIORITY[status] > STATUS_PRIORITY[worst] ? status : worst;
-  }, 'healthy');
-}
+import type { HealthStatus } from '../types/pet';
 
 const ESPECIE_LABEL: Record<Especie, string> = {
   CAO: 'Cachorro',
@@ -65,6 +57,9 @@ export function HomeScreen() {
   const scoreQuery = usePetScore(selectedPetId);
   const alertsQuery = usePetAlerts(selectedPetId);
   const preventiveQuery = usePreventivePlan(selectedPetId);
+  const coleiraQuery = useLeiturasColeira(selectedPetId);
+  const comedouroQuery = useLeiturasComedouro(selectedPetId);
+  const ambienteQuery = useLeiturasAmbiente(selectedPetId);
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
   const upcomingItems = (preventiveQuery.data ?? [])
@@ -75,9 +70,9 @@ export function HomeScreen() {
   const petSpecies = selectedPet ? ESPECIE_LABEL[selectedPet.especie] : '';
   const petBreed = selectedPet?.raca ?? '';
 
-  const activityStatus = collarMetrics[0]?.status ?? 'healthy';
-  const feederStatus = feederMetrics[0]?.status ?? 'healthy';
-  const environmentStatus = worstStatus(environmentMetrics);
+  const ultimaColeira = coleiraQuery.data?.[0];
+  const ultimoComedouro = comedouroQuery.data?.[0];
+  const ultimoAmbiente = ambienteQuery.data?.[0];
   const alertsCount = alertsQuery.data?.length ?? 0;
 
   const summaryTiles: SummaryTile[] = [
@@ -85,7 +80,7 @@ export function HomeScreen() {
       key: 'atividade',
       icon: 'run',
       label: 'Atividade',
-      value: activityStatus === 'healthy' ? 'Boa hoje' : activityStatus === 'attention' ? 'Atenção' : 'Cuidado',
+      value: ultimaColeira ? STATUS_ATIVIDADE_LABEL[ultimaColeira.statusAtividade] : 'Sem dados',
       iconColor: colors.greenPrimary,
       backgroundColor: colors.greenLight,
     },
@@ -93,7 +88,7 @@ export function HomeScreen() {
       key: 'alimentacao',
       icon: 'bowl-outline',
       label: 'Alimentação',
-      value: feederStatus === 'healthy' ? 'Normal' : feederStatus === 'attention' ? 'Baixo' : 'Crítico',
+      value: ultimoComedouro ? (ultimoComedouro.nivelRacaoPct < 20 ? 'Baixo' : 'Normal') : 'Sem dados',
       iconColor: colors.bluePrimary,
       backgroundColor: colors.blueLight,
     },
@@ -101,7 +96,7 @@ export function HomeScreen() {
       key: 'ambiente',
       icon: 'home-outline',
       label: 'Ambiente',
-      value: environmentStatus === 'healthy' ? 'Confortável' : environmentStatus === 'attention' ? 'Atenção' : 'Risco',
+      value: ultimoAmbiente ? comfortLabel(ultimoAmbiente) : 'Sem dados',
       iconColor: colors.aiPurple,
       backgroundColor: '#EDEBFB',
     },
