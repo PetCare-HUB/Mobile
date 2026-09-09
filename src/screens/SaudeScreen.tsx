@@ -6,15 +6,13 @@ import { SegmentedControl } from '../components/SegmentedControl';
 import { CollarSection } from './health/CollarSection';
 import { EnvironmentSection } from './health/EnvironmentSection';
 import { FeederSection } from './health/FeederSection';
-import { HistoricoSection } from './health/HistoricoSection';
 
-type SaudeTab = 'coleira' | 'alimentacao' | 'ambiente' | 'historico';
+type SaudeTab = 'coleira' | 'alimentacao' | 'ambiente';
 
 const segments: { key: SaudeTab; label: string }[] = [
   { key: 'coleira', label: 'Coleira' },
   { key: 'alimentacao', label: 'Alimentação' },
   { key: 'ambiente', label: 'Ambiente' },
-  { key: 'historico', label: 'Histórico' },
 ];
 
 export function SaudeScreen() {
@@ -33,7 +31,6 @@ export function SaudeScreen() {
       {tab === 'coleira' && <CollarSection />}
       {tab === 'alimentacao' && <FeederSection />}
       {tab === 'ambiente' && <EnvironmentSection />}
-      {tab === 'historico' && <HistoricoSection />}
     </ScreenContainer>
   );
 }
