@@ -46,8 +46,16 @@ export async function ativarConta(
   senha: string,
   onSlowConnection?: () => void
 ) {
+  // O backend guarda e compara o CPF como dígitos puros — a máscara (000.000.000-00)
+  // é só de exibição, não pode ir no corpo da requisição.
+  const cpfSemMascara = cpf.replace(/\D/g, '');
+
   try {
-    return await postWithSlowConnectionNotice('/auth/ativar-conta', { nome, cpf, email, senha }, onSlowConnection);
+    return await postWithSlowConnectionNotice(
+      '/auth/ativar-conta',
+      { nome: nome.trim(), cpf: cpfSemMascara, email: email.trim(), senha },
+      onSlowConnection
+    );
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
       throw new ApiError(401, 'Não localizamos um pré-cadastro com esses dados. Verifique nome, CPF e e-mail informados pela clínica.');

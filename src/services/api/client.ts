@@ -36,7 +36,15 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
       let message = `Erro ${response.status}`;
       try {
         const body = await response.json();
-        message = body?.message || body?.error || message;
+        const mensagem: string | null = body?.mensagem || body?.message || body?.erro || body?.error || null;
+        const detalhes: string | null =
+          Array.isArray(body?.detalhes) && body.detalhes.length > 0 ? body.detalhes.join('; ') : null;
+
+        if (mensagem && detalhes) {
+          message = `${mensagem}: ${detalhes}`;
+        } else {
+          message = mensagem || detalhes || message;
+        }
       } catch {
         // resposta sem corpo JSON, mantém a mensagem padrão
       }

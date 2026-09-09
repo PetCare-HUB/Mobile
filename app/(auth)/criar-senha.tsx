@@ -35,6 +35,7 @@ export default function CriarSenhaScreen() {
     setSlowConnection(false);
     try {
       await ativarConta(nome, cpf, email, senha, () => setSlowConnection(true));
+      Alert.alert('Conta ativada!', `Bem-vindo(a) ao PetCare Hub, ${nome.split(' ')[0]}.`);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Não foi possível ativar a conta.';
       Alert.alert('Erro ao ativar conta', message);
