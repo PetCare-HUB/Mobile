@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -15,11 +15,10 @@ import { colors, radius, spacing, typography } from '../theme';
 import { homeAlerts, petSummary } from '../data/mockData';
 import { getPetProfile, type PetProfile } from '../storage/petStorage';
 import { getPreventiveItems } from '../storage/preventiveStorage';
-import type { RootStackParamList } from '../navigation/AppNavigator';
 import type { PreventiveItemType } from '../types/pet';
 
 export function HomeScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const router = useRouter();
   const [petProfile, setPetProfile] = useState<PetProfile | null>(null);
   const [preventivos, setPreventivos] = useState<PreventiveItemType[]>([]);
 
@@ -72,7 +71,7 @@ export function HomeScreen() {
 
       <TouchableOpacity
         style={styles.preventivoButton}
-        onPress={() => navigation.navigate('Preventive')}
+        onPress={() => router.push('/preventivo')}
         activeOpacity={0.8}
       >
         <View style={styles.preventivoButtonContent}>

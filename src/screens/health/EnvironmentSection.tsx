@@ -1,14 +1,12 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 
-import { ScreenContainer } from '../components/ScreenContainer';
-import { SectionHeader } from '../components/SectionHeader';
-import { SensorCard } from '../components/SensorCard';
-import { environmentMetrics } from '../data/mockData';
-import { getSensorData, saveSensorData } from '../storage/sensorStorage';
-import type { SensorMetric } from '../types/pet';
+import { SensorCard } from '../../components/SensorCard';
+import { environmentMetrics } from '../../data/mockData';
+import { getSensorData, saveSensorData } from '../../storage/sensorStorage';
+import type { SensorMetric } from '../../types/pet';
 
-export function EnvironmentScreen() {
+export function EnvironmentSection() {
   const [metrics, setMetrics] = useState<SensorMetric[]>(environmentMetrics);
 
   useFocusEffect(
@@ -27,12 +25,7 @@ export function EnvironmentScreen() {
   );
 
   return (
-    <ScreenContainer>
-      <SectionHeader
-        title="Ambiente"
-        subtitle="Sensores identificam riscos de temperatura, umidade, qualidade do ar e presença no cômodo."
-        level="page"
-      />
+    <>
       {metrics.map((metric) => (
         <SensorCard
           key={metric.id}
@@ -42,6 +35,6 @@ export function EnvironmentScreen() {
           status={metric.status}
         />
       ))}
-    </ScreenContainer>
+    </>
   );
 }

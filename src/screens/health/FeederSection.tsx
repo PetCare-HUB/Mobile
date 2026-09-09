@@ -1,15 +1,13 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 
-import { AlertCard } from '../components/AlertCard';
-import { ScreenContainer } from '../components/ScreenContainer';
-import { SectionHeader } from '../components/SectionHeader';
-import { SensorCard } from '../components/SensorCard';
-import { feederMetrics } from '../data/mockData';
-import { getSensorData, saveSensorData } from '../storage/sensorStorage';
-import type { SensorMetric } from '../types/pet';
+import { AlertCard } from '../../components/AlertCard';
+import { SensorCard } from '../../components/SensorCard';
+import { feederMetrics } from '../../data/mockData';
+import { getSensorData, saveSensorData } from '../../storage/sensorStorage';
+import type { SensorMetric } from '../../types/pet';
 
-export function FeederScreen() {
+export function FeederSection() {
   const [metrics, setMetrics] = useState<SensorMetric[]>(feederMetrics);
 
   useFocusEffect(
@@ -30,12 +28,7 @@ export function FeederScreen() {
   const nivelBaixo = metrics.find((m) => m.id === 1)?.status === 'attention';
 
   return (
-    <ScreenContainer>
-      <SectionHeader
-        title="Comedouro Inteligente"
-        subtitle="O comedouro monitora nível de ração, consumo diário e horários de refeição."
-        level="page"
-      />
+    <>
       {metrics.map((metric) => (
         <SensorCard
           key={metric.id}
@@ -52,6 +45,6 @@ export function FeederScreen() {
           severity="medium"
         />
       )}
-    </ScreenContainer>
+    </>
   );
 }

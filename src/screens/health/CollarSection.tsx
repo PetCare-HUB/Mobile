@@ -1,14 +1,12 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 
-import { ScreenContainer } from '../components/ScreenContainer';
-import { SectionHeader } from '../components/SectionHeader';
-import { SensorCard } from '../components/SensorCard';
-import { collarMetrics } from '../data/mockData';
-import { getSensorData, saveSensorData } from '../storage/sensorStorage';
-import type { SensorMetric } from '../types/pet';
+import { SensorCard } from '../../components/SensorCard';
+import { collarMetrics } from '../../data/mockData';
+import { getSensorData, saveSensorData } from '../../storage/sensorStorage';
+import type { SensorMetric } from '../../types/pet';
 
-export function CollarScreen() {
+export function CollarSection() {
   const [metrics, setMetrics] = useState<SensorMetric[]>(collarMetrics);
 
   useFocusEffect(
@@ -27,12 +25,7 @@ export function CollarScreen() {
   );
 
   return (
-    <ScreenContainer>
-      <SectionHeader
-        title="Coleira Smart"
-        subtitle="A coleira acompanha atividade física e bateria para apoiar a detecção de mudanças no comportamento do pet."
-        level="page"
-      />
+    <>
       {metrics.map((metric) => (
         <SensorCard
           key={metric.id}
@@ -42,6 +35,6 @@ export function CollarScreen() {
           status={metric.status}
         />
       ))}
-    </ScreenContainer>
+    </>
   );
 }

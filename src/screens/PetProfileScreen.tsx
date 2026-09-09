@@ -15,10 +15,12 @@ import { Button } from '../components/Button';
 import { SectionHeader } from '../components/SectionHeader';
 import { StatusCard } from '../components/StatusCard';
 import { colors, radius, spacing, typography } from '../theme';
+import { useAuth } from '../contexts/auth/AuthContext';
 import { getPetProfile, removePetProfile, savePetProfile } from '../storage/petStorage';
 import { getPreferences, savePreferences } from '../storage/preferencesStorage';
 
 export function PetProfileScreen() {
+  const { logout } = useAuth();
   const [nome, setNome] = useState('');
   const [especie, setEspecie] = useState('');
   const [raca, setRaca] = useState('');
@@ -147,6 +149,8 @@ export function PetProfileScreen() {
             </View>
           ))}
         </StatusCard>
+
+        <Button label="Sair da conta" variant="secondary" onPress={logout} style={styles.logoutButton} />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -170,6 +174,7 @@ const styles = StyleSheet.create({
   previewText: { ...typography.subtitle, fontWeight: '400', color: colors.textPrimary, marginBottom: spacing.xs + 2 },
   previewStrong: { fontWeight: '700' },
   prefsCard: { marginBottom: spacing.lg },
+  logoutButton: { marginBottom: spacing.lg },
   prefsTitle: { ...typography.cardTitle, color: colors.textPrimary, marginBottom: spacing.md },
   prefRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
   prefLabel: { ...typography.body, color: colors.textPrimary, flex: 1 },
