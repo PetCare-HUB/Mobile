@@ -1,15 +1,19 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, Text } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { Alert, StyleSheet, Text, View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { AppInput } from '../../src/components/AppInput';
 import { Button } from '../../src/components/Button';
 import { ScreenContainer } from '../../src/components/ScreenContainer';
 import { SectionHeader } from '../../src/components/SectionHeader';
-import { colors, spacing, typography } from '../../src/theme';
+import { StatusCard } from '../../src/components/StatusCard';
+import { StepIndicator } from '../../src/components/StepIndicator';
+import { colors, radius, spacing, typography } from '../../src/theme';
 import { useAuth } from '../../src/contexts/auth/AuthContext';
 
 export default function CriarSenhaScreen() {
+  const router = useRouter();
   const { ativarConta } = useAuth();
   const { nome, cpf, email } = useLocalSearchParams<{ nome: string; cpf: string; email: string }>();
   const [senha, setSenha] = useState('');
@@ -42,14 +46,22 @@ export default function CriarSenhaScreen() {
 
   return (
     <ScreenContainer>
+      <StepIndicator step={3} total={3} />
+
+      <View style={styles.iconBadge}>
+        <MaterialCommunityIcons name="lock-check-outline" size={22} color={colors.greenPrimary} />
+      </View>
+
       <SectionHeader
         title="Criar senha"
         subtitle="Defina a senha que você usará para entrar no app."
         level="page"
       />
 
-      <AppInput label="Senha" placeholder="Mínimo 8 caracteres" value={senha} onChangeText={setSenha} secureTextEntry />
-      <AppInput label="Confirmar senha" placeholder="Repita a senha" value={confirmarSenha} onChangeText={setConfirmarSenha} secureTextEntry />
+      <StatusCard>
+        <AppInput label="Senha" placeholder="Mínimo 8 caracteres" value={senha} onChangeText={setSenha} secureTextEntry icon="lock-outline" />
+        <AppInput label="Confirmar senha" placeholder="Repita a senha" value={confirmarSenha} onChangeText={setConfirmarSenha} secureTextEntry icon="lock-outline" />
+      </StatusCard>
 
       {slowConnection && (
         <Text style={styles.slowNotice}>
@@ -58,11 +70,22 @@ export default function CriarSenhaScreen() {
       )}
 
       <Button label="Ativar conta" onPress={handleCriarConta} loading={loading} style={styles.button} />
+      <Button label="Voltar" variant="secondary" onPress={() => router.back()} disabled={loading} style={styles.backButton} />
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
+  iconBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: colors.greenLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
   slowNotice: { ...typography.secondaryInfo, color: colors.textSecondary, marginBottom: spacing.md, textAlign: 'center' },
   button: { marginTop: spacing.md },
+  backButton: { marginTop: spacing.md, marginBottom: spacing.lg },
 });
