@@ -159,6 +159,13 @@ export const environmentSummary = {
   comfortLabel: 'Confortável',
 };
 
+export const petTimeline = [
+  { id: 1, date: 'Hoje', title: 'Alteração no padrão de atividade' },
+  { id: 2, date: '01/09', title: 'Consulta preventiva' },
+  { id: 3, date: '25/08', title: 'Score 84 → 89' },
+  { id: 4, date: '12/08', title: 'Vacina aplicada' },
+];
+
 export const preventiveItems: PreventiveItemType[] = [
   {
     id: 1,

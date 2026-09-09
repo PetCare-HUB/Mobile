@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, type KeyboardTypeOptions } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, View, type KeyboardTypeOptions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors, radius, spacing, typography } from '../theme';
+import { FieldLabel } from './FieldLabel';
 
 type AppInputProps = {
   label: string;
@@ -11,6 +12,7 @@ type AppInputProps = {
   keyboardType?: KeyboardTypeOptions;
   secureTextEntry?: boolean;
   icon?: keyof typeof MaterialCommunityIcons.glyphMap;
+  required?: boolean;
 };
 
 export function AppInput({
@@ -21,12 +23,13 @@ export function AppInput({
   keyboardType,
   secureTextEntry,
   icon,
+  required,
 }: AppInputProps) {
   const [hidden, setHidden] = useState(secureTextEntry);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
+      <FieldLabel text={label} required={required} />
       <View style={styles.inputRow}>
         {icon ? <MaterialCommunityIcons name={icon} size={18} color={colors.textSecondary} style={styles.icon} /> : null}
         <TextInput
@@ -50,7 +53,6 @@ export function AppInput({
 
 const styles = StyleSheet.create({
   container: { marginBottom: spacing.md },
-  label: { ...typography.secondaryInfo, color: colors.textSecondary, marginBottom: spacing.xs },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',

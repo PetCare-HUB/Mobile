@@ -9,6 +9,9 @@ export type PetProfile = {
   idade: string;
   peso: string;
   clinica: string;
+  sexo?: string;
+  microchip?: string;
+  observacoes?: string;
 };
 
 export async function savePetProfile(profile: PetProfile) {
