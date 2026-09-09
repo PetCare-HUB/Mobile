@@ -1,8 +1,9 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { ScrollView, StyleSheet, Text } from 'react-native';
 
 import { AlertCard } from '../components/AlertCard';
+import { ScreenContainer } from '../components/ScreenContainer';
+import { SectionHeader } from '../components/SectionHeader';
 import { SensorCard } from '../components/SensorCard';
 import { feederMetrics } from '../data/mockData';
 import { getSensorData, saveSensorData } from '../storage/sensorStorage';
@@ -29,11 +30,12 @@ export function FeederScreen() {
   const nivelBaixo = metrics.find((m) => m.id === 1)?.status === 'attention';
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Comedouro Inteligente</Text>
-      <Text style={styles.subtitle}>
-        O comedouro monitora nível de ração, consumo diário e horários de refeição.
-      </Text>
+    <ScreenContainer>
+      <SectionHeader
+        title="Comedouro Inteligente"
+        subtitle="O comedouro monitora nível de ração, consumo diário e horários de refeição."
+        level="page"
+      />
       {metrics.map((metric) => (
         <SensorCard
           key={metric.id}
@@ -50,14 +52,6 @@ export function FeederScreen() {
           severity="medium"
         />
       )}
-    </ScrollView>
+    </ScreenContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  content: { padding: 24, paddingBottom: 40 },
-  title: { fontSize: 26, fontWeight: 'bold', color: '#0F172A', marginBottom: 8 },
-  subtitle: { fontSize: 15, color: '#475569', lineHeight: 22, marginBottom: 20 },
-  footerNote: { fontSize: 12, color: '#94A3B8', marginTop: 12, textAlign: 'center' },
-});

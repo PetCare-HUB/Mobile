@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+import { colors } from '../theme';
 import { HomeScreen } from '../screens/HomeScreen';
 import { CollarScreen } from '../screens/CollarScreen';
 import { FeederScreen } from '../screens/FeederScreen';
@@ -30,16 +31,17 @@ function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: '#0F172A' },
-        headerTintColor: '#FFFFFF',
-        headerTitleStyle: { fontWeight: 'bold' },
+        headerStyle: { backgroundColor: colors.surface },
+        headerShadowVisible: false,
+        headerTintColor: colors.textPrimary,
+        headerTitleStyle: { fontWeight: '700', color: colors.textPrimary },
         tabBarStyle: {
-          backgroundColor: '#0F172A',
-          borderTopColor: '#1E293B',
+          backgroundColor: colors.surface,
+          borderTopColor: colors.borderGray,
           borderTopWidth: 1,
         },
-        tabBarActiveTintColor: '#60A5FA',
-        tabBarInactiveTintColor: '#64748B',
+        tabBarActiveTintColor: colors.greenPrimary,
+        tabBarInactiveTintColor: colors.textSecondary,
       }}
     >
       <Tab.Screen
@@ -106,9 +108,10 @@ export function AppNavigator() {
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{
-          headerStyle: { backgroundColor: '#0F172A' },
-          headerTintColor: '#FFFFFF',
-          headerTitleStyle: { fontWeight: 'bold' },
+          headerStyle: { backgroundColor: colors.surface },
+          headerShadowVisible: false,
+          headerTintColor: colors.textPrimary,
+          headerTitleStyle: { fontWeight: '700', color: colors.textPrimary },
         }}
       >
         <Stack.Screen

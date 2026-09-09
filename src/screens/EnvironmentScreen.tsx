@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { ScrollView, StyleSheet, Text } from 'react-native';
 
+import { ScreenContainer } from '../components/ScreenContainer';
+import { SectionHeader } from '../components/SectionHeader';
 import { SensorCard } from '../components/SensorCard';
 import { environmentMetrics } from '../data/mockData';
 import { getSensorData, saveSensorData } from '../storage/sensorStorage';
@@ -26,12 +27,12 @@ export function EnvironmentScreen() {
   );
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Ambiente</Text>
-      <Text style={styles.subtitle}>
-        Sensores identificam riscos de temperatura, umidade, qualidade do ar
-        e presença no cômodo.
-      </Text>
+    <ScreenContainer>
+      <SectionHeader
+        title="Ambiente"
+        subtitle="Sensores identificam riscos de temperatura, umidade, qualidade do ar e presença no cômodo."
+        level="page"
+      />
       {metrics.map((metric) => (
         <SensorCard
           key={metric.id}
@@ -41,14 +42,6 @@ export function EnvironmentScreen() {
           status={metric.status}
         />
       ))}
-    </ScrollView>
+    </ScreenContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  content: { padding: 24, paddingBottom: 40 },
-  title: { fontSize: 26, fontWeight: 'bold', color: '#0F172A', marginBottom: 8 },
-  subtitle: { fontSize: 15, color: '#475569', lineHeight: 22, marginBottom: 20 },
-  footerNote: { fontSize: 12, color: '#94A3B8', marginTop: 12, textAlign: 'center' },
-});

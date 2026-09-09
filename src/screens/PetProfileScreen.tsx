@@ -6,11 +6,15 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 
+import { AppInput } from '../components/AppInput';
+import { Button } from '../components/Button';
+import { SectionHeader } from '../components/SectionHeader';
+import { StatusCard } from '../components/StatusCard';
+import { colors, radius, spacing, typography } from '../theme';
 import { getPetProfile, removePetProfile, savePetProfile } from '../storage/petStorage';
 import { getPreferences, savePreferences } from '../storage/preferencesStorage';
 
@@ -97,40 +101,25 @@ export function PetProfileScreen() {
         style={styles.container}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Perfil do Pet</Text>
-        <Text style={styles.subtitle}>
-          Cadastre os dados principais do pet. Essas informações serão salvas
-          localmente com AsyncStorage.
-        </Text>
+        <SectionHeader
+          title="Perfil do Pet"
+          subtitle="Cadastre os dados principais do pet. Essas informações serão salvas localmente com AsyncStorage."
+          level="page"
+        />
 
-        <View style={styles.form}>
-          <Text style={styles.label}>Nome do pet</Text>
-          <TextInput style={styles.input} placeholder="Ex: Rex" value={nome} onChangeText={setNome} />
+        <StatusCard>
+          <AppInput label="Nome do pet" placeholder="Ex: Rex" value={nome} onChangeText={setNome} />
+          <AppInput label="Espécie" placeholder="Ex: Cachorro" value={especie} onChangeText={setEspecie} />
+          <AppInput label="Raça" placeholder="Ex: Golden Retriever" value={raca} onChangeText={setRaca} />
+          <AppInput label="Idade" placeholder="Ex: 4" value={idade} onChangeText={setIdade} keyboardType="numeric" />
+          <AppInput label="Peso em kg" placeholder="Ex: 28.5" value={peso} onChangeText={setPeso} keyboardType="decimal-pad" />
+          <AppInput label="Clínica vinculada" placeholder="Ex: Clínica Clyvo Vet" value={clinica} onChangeText={setClinica} />
 
-          <Text style={styles.label}>Espécie</Text>
-          <TextInput style={styles.input} placeholder="Ex: Cachorro" value={especie} onChangeText={setEspecie} />
-
-          <Text style={styles.label}>Raça</Text>
-          <TextInput style={styles.input} placeholder="Ex: Golden Retriever" value={raca} onChangeText={setRaca} />
-
-          <Text style={styles.label}>Idade</Text>
-          <TextInput style={styles.input} placeholder="Ex: 4" value={idade} onChangeText={setIdade} keyboardType="numeric" />
-
-          <Text style={styles.label}>Peso em kg</Text>
-          <TextInput style={styles.input} placeholder="Ex: 28.5" value={peso} onChangeText={setPeso} keyboardType="decimal-pad" />
-
-          <Text style={styles.label}>Clínica vinculada</Text>
-          <TextInput style={styles.input} placeholder="Ex: Clínica Clyvo Vet" value={clinica} onChangeText={setClinica} />
-
-          <TouchableOpacity style={styles.button} onPress={salvarPerfil}>
-            <Text style={styles.buttonText}>Salvar perfil</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.clearButton} onPress={limparFormulario}>
-            <Text style={styles.clearButtonText}>Limpar dados salvos</Text>
-          </TouchableOpacity>
-        </View>
+          <Button label="Salvar perfil" onPress={salvarPerfil} style={styles.saveButton} />
+          <Button label="Limpar dados salvos" variant="danger" onPress={limparFormulario} style={styles.clearButton} />
+        </StatusCard>
 
         <View style={styles.previewCard}>
           <Text style={styles.previewTitle}>Prévia em tempo real</Text>
@@ -142,7 +131,7 @@ export function PetProfileScreen() {
           <Text style={styles.previewText}>Clínica: <Text style={styles.previewStrong}>{clinica || 'Não informada'}</Text></Text>
         </View>
 
-        <View style={styles.prefsCard}>
+        <StatusCard style={styles.prefsCard}>
           <Text style={styles.prefsTitle}>Preferências de notificação</Text>
 
           {[
@@ -157,40 +146,35 @@ export function PetProfileScreen() {
               </TouchableOpacity>
             </View>
           ))}
-        </View>
+        </StatusCard>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  keyboardContainer: { flex: 1, backgroundColor: '#F8FAFC' },
+  keyboardContainer: { flex: 1, backgroundColor: colors.background },
   container: { flex: 1 },
-  content: { padding: 24, paddingBottom: 40 },
-  loadingContainer: { flex: 1, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center' },
-  loadingText: { fontSize: 16, color: '#475569' },
-  title: { fontSize: 26, fontWeight: 'bold', color: '#0F172A', marginBottom: 8 },
-  subtitle: { fontSize: 15, color: '#475569', lineHeight: 22, marginBottom: 24 },
-  form: { backgroundColor: '#FFFFFF', padding: 18, borderRadius: 16, marginBottom: 20 },
-  label: { fontSize: 14, fontWeight: '600', color: '#334155', marginBottom: 6 },
-  input: { borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 12, padding: 14, fontSize: 16, color: '#0F172A', marginBottom: 14, backgroundColor: '#FFFFFF' },
-  button: { backgroundColor: '#2563EB', padding: 16, borderRadius: 12, marginTop: 6 },
-  buttonText: { color: '#FFFFFF', fontWeight: 'bold', textAlign: 'center', fontSize: 16 },
-  clearButton: { borderWidth: 1, borderColor: '#EF4444', padding: 16, borderRadius: 12, marginTop: 12 },
-  clearButtonText: { color: '#EF4444', fontWeight: 'bold', textAlign: 'center', fontSize: 16 },
-  previewCard: { backgroundColor: '#E0F2FE', padding: 18, borderRadius: 16, marginBottom: 16 },
-  previewTitle: { fontSize: 18, fontWeight: 'bold', color: '#075985', marginBottom: 12 },
-  previewText: { fontSize: 15, color: '#0F172A', marginBottom: 6 },
-  previewStrong: { fontWeight: 'bold' },
-  prefsCard: { backgroundColor: '#FFFFFF', padding: 18, borderRadius: 16, marginBottom: 16 },
-  prefsTitle: { fontSize: 17, fontWeight: 'bold', color: '#0F172A', marginBottom: 4 },
-  prefsSubtitle: { fontSize: 12, color: '#64748B', marginBottom: 16 },
-  prefRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
-  prefLabel: { fontSize: 15, color: '#334155', flex: 1 },
-  toggle: { width: 44, height: 24, borderRadius: 12, backgroundColor: '#CBD5E1', padding: 2, justifyContent: 'center' },
-  toggleActive: { backgroundColor: '#2563EB' },
-  toggleThumb: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#FFFFFF', alignSelf: 'flex-start' },
+  content: { paddingHorizontal: spacing.screenPadding, paddingTop: spacing.lg, paddingBottom: spacing['2xl'] },
+  loadingContainer: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
+  loadingText: { ...typography.body, color: colors.textSecondary },
+  saveButton: { marginTop: spacing.xs },
+  clearButton: { marginTop: spacing.md },
+  previewCard: {
+    backgroundColor: colors.blueLight,
+    padding: spacing.cardPadding + 2,
+    borderRadius: radius.cardMd,
+    marginBottom: spacing.cardGap,
+  },
+  previewTitle: { ...typography.cardTitle, color: colors.bluePrimary, marginBottom: spacing.md },
+  previewText: { ...typography.subtitle, fontWeight: '400', color: colors.textPrimary, marginBottom: spacing.xs + 2 },
+  previewStrong: { fontWeight: '700' },
+  prefsCard: { marginBottom: spacing.lg },
+  prefsTitle: { ...typography.cardTitle, color: colors.textPrimary, marginBottom: spacing.md },
+  prefRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
+  prefLabel: { ...typography.body, color: colors.textPrimary, flex: 1 },
+  toggle: { width: 44, height: 24, borderRadius: radius.pill, backgroundColor: colors.borderGray, padding: 2, justifyContent: 'center' },
+  toggleActive: { backgroundColor: colors.greenPrimary },
+  toggleThumb: { width: 20, height: 20, borderRadius: radius.pill, backgroundColor: colors.surface, alignSelf: 'flex-start' },
   toggleThumbActive: { alignSelf: 'flex-end' },
-  infoTitle: { fontSize: 16, fontWeight: 'bold', color: '#166534', marginBottom: 6 },
-  infoText: { fontSize: 14, color: '#166534', lineHeight: 20 },
 });

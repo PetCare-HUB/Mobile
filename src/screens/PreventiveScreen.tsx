@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
+import { Button } from '../components/Button';
 import { PreventiveItem } from '../components/PreventiveItem';
+import { ScreenContainer } from '../components/ScreenContainer';
+import { SectionHeader } from '../components/SectionHeader';
+import { StatusCard } from '../components/StatusCard';
+import { colors, spacing, typography } from '../theme';
 import { getPreventiveItems, resetPreventiveItems, savePreventiveItems, getStreak } from '../storage/preventiveStorage';
 import type { PreventiveItemType } from '../types/pet';
 
@@ -52,14 +57,14 @@ export function PreventiveScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Calendário Preventivo</Text>
-      <Text style={styles.subtitle}>
-        Acompanhe vacinas, check-ups, vermífugos e medicamentos para manter a
-        rotina de cuidado em dia.
-      </Text>
+    <ScreenContainer>
+      <SectionHeader
+        title="Calendário Preventivo"
+        subtitle="Acompanhe vacinas, check-ups, vermífugos e medicamentos para manter a rotina de cuidado em dia."
+        level="page"
+      />
 
-      <View style={styles.summaryCard}>
+      <StatusCard>
         <Text style={styles.summaryTitle}>Resumo preventivo</Text>
         <View style={styles.summaryRow}>
           <View style={styles.summaryItem}>
@@ -67,19 +72,19 @@ export function PreventiveScreen() {
             <Text style={styles.summaryLabel}>Total</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={[styles.summaryNumber, { color: '#16A34A' }]}>{completedItems}</Text>
+            <Text style={[styles.summaryNumber, { color: colors.success }]}>{completedItems}</Text>
             <Text style={styles.summaryLabel}>Feitos</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={[styles.summaryNumber, { color: '#D97706' }]}>{pendingItems}</Text>
+            <Text style={[styles.summaryNumber, { color: colors.warning }]}>{pendingItems}</Text>
             <Text style={styles.summaryLabel}>Pendentes</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={[styles.summaryNumber, { color: '#F59E0B' }]}> {streak}</Text>
+            <Text style={[styles.summaryNumber, { color: colors.warning }]}>{streak}</Text>
             <Text style={styles.summaryLabel}>Streak dias</Text>
           </View>
         </View>
-      </View>
+      </StatusCard>
 
       {items.map((item) => (
         <PreventiveItem
@@ -92,28 +97,23 @@ export function PreventiveScreen() {
         />
       ))}
 
-      <TouchableOpacity style={styles.resetButton} onPress={resetarCalendario}>
-        <Text style={styles.resetButtonText}>Resetar calendário</Text>
-      </TouchableOpacity>
-    </ScrollView>
+      <Button
+        label="Resetar calendário"
+        variant="danger"
+        onPress={resetarCalendario}
+        style={styles.resetButton}
+      />
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  content: { padding: 24, paddingBottom: 40 },
-  loadingContainer: { flex: 1, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center' },
-  loadingText: { fontSize: 16, color: '#475569' },
-  title: { fontSize: 26, fontWeight: 'bold', color: '#0F172A', marginBottom: 8 },
-  subtitle: { fontSize: 15, color: '#475569', lineHeight: 22, marginBottom: 20 },
-  summaryCard: { backgroundColor: '#FFFFFF', padding: 18, borderRadius: 16, marginBottom: 20 },
-  summaryTitle: { fontSize: 18, fontWeight: 'bold', color: '#0F172A', marginBottom: 14 },
+  loadingContainer: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
+  loadingText: { ...typography.body, color: colors.textSecondary },
+  summaryTitle: { ...typography.cardTitle, color: colors.textPrimary, marginBottom: spacing.md + 2 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between' },
   summaryItem: { alignItems: 'center', flex: 1 },
-  summaryNumber: { fontSize: 26, fontWeight: 'bold', color: '#2563EB' },
-  summaryLabel: { fontSize: 13, color: '#64748B', marginTop: 4 },
-  resetButton: { borderWidth: 1, borderColor: '#EF4444', padding: 16, borderRadius: 14, marginTop: 8, marginBottom: 16 },
-  resetButtonText: { color: '#EF4444', fontWeight: 'bold', textAlign: 'center', fontSize: 15 },
-  infoTitle: { fontSize: 16, fontWeight: 'bold', color: '#166534', marginBottom: 6 },
-  infoText: { fontSize: 14, color: '#166534', lineHeight: 20 },
+  summaryNumber: { ...typography.pageTitle, color: colors.bluePrimary },
+  summaryLabel: { ...typography.secondaryInfo, color: colors.textSecondary, marginTop: spacing.xs },
+  resetButton: { marginTop: spacing.sm, marginBottom: spacing.lg },
 });

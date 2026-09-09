@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { HealthStatus } from '../types/pet';
+import { colors, radius, spacing, typography } from '../theme';
 
 type SensorCardProps = {
   title: string;
@@ -10,18 +11,13 @@ type SensorCardProps = {
 };
 
 function getStatusColor(status?: HealthStatus) {
-  if (status === 'healthy') return '#16A34A';
-  if (status === 'attention') return '#CA8A04';
-  if (status === 'risk') return '#DC2626';
-  return '#2563EB';
+  if (status === 'healthy') return colors.success;
+  if (status === 'attention') return colors.warning;
+  if (status === 'risk') return colors.danger;
+  return colors.bluePrimary;
 }
 
-export function SensorCard({
-  title,
-  value,
-  description,
-  status,
-}: SensorCardProps) {
+export function SensorCard({ title, value, description, status }: SensorCardProps) {
   const color = getStatusColor(status);
 
   return (
@@ -39,33 +35,21 @@ export function SensorCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: colors.surface,
+    borderRadius: radius.cardMd,
+    borderWidth: 1,
+    borderColor: colors.borderGray,
+    padding: spacing.cardPadding,
+    marginBottom: spacing.cardGap,
     flexDirection: 'row',
   },
   indicator: {
     width: 6,
-    borderRadius: 99,
-    marginRight: 14,
+    borderRadius: radius.pill,
+    marginRight: spacing.md + 2,
   },
-  content: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 14,
-    color: '#64748B',
-    marginBottom: 4,
-  },
-  value: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 6,
-  },
-  description: {
-    fontSize: 14,
-    color: '#475569',
-    lineHeight: 20,
-  },
+  content: { flex: 1 },
+  title: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.xs },
+  value: { ...typography.pageTitle, fontSize: 22, marginBottom: spacing.xs + 2 },
+  description: { ...typography.body, color: colors.textSecondary },
 });

@@ -1,4 +1,7 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { colors, radius, spacing, typography } from '../theme';
+import { StatusChip } from './StatusChip';
+import { Button } from './Button';
 
 type PreventiveItemProps = {
   title: string;
@@ -8,35 +11,24 @@ type PreventiveItemProps = {
   onToggle?: () => void;
 };
 
-export function PreventiveItem({
-  title,
-  date,
-  description,
-  done,
-  onToggle,
-}: PreventiveItemProps) {
+export function PreventiveItem({ title, date, description, done, onToggle }: PreventiveItemProps) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
-
-        <Text style={[styles.status, done ? styles.done : styles.pending]}>
-          {done ? 'Feito' : 'Pendente'}
-        </Text>
+        <StatusChip label={done ? 'Feito' : 'Pendente'} tone={done ? 'success' : 'warning'} />
       </View>
 
       <Text style={styles.date}>{date}</Text>
       <Text style={styles.description}>{description}</Text>
 
       {onToggle && (
-        <TouchableOpacity
-          style={[styles.button, done ? styles.undoButton : styles.doneButton]}
+        <Button
+          label={done ? 'Marcar como pendente' : 'Marcar como feito'}
           onPress={onToggle}
-        >
-          <Text style={styles.buttonText}>
-            {done ? 'Marcar como pendente' : 'Marcar como feito'}
-          </Text>
-        </TouchableOpacity>
+          variant={done ? 'secondary' : 'primary'}
+          style={styles.button}
+        />
       )}
     </View>
   );
@@ -44,64 +36,22 @@ export function PreventiveItem({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 12,
+    backgroundColor: colors.surface,
+    borderRadius: radius.cardMd,
+    borderWidth: 1,
+    borderColor: colors.borderGray,
+    padding: spacing.cardPadding,
+    marginBottom: spacing.cardGap,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 6,
+    alignItems: 'flex-start',
+    gap: spacing.md,
+    marginBottom: spacing.xs + 2,
   },
-  title: {
-    flex: 1,
-    fontSize: 17,
-    fontWeight: 'bold',
-    color: '#0F172A',
-  },
-  status: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 99,
-    overflow: 'hidden',
-  },
-  done: {
-    backgroundColor: '#DCFCE7',
-    color: '#166534',
-  },
-  pending: {
-    backgroundColor: '#FEF3C7',
-    color: '#92400E',
-  },
-  date: {
-    fontSize: 14,
-    color: '#2563EB',
-    fontWeight: '600',
-    marginBottom: 6,
-  },
-  description: {
-    fontSize: 14,
-    color: '#475569',
-    lineHeight: 20,
-  },
-  button: {
-    marginTop: 14,
-    padding: 12,
-    borderRadius: 12,
-  },
-  doneButton: {
-    backgroundColor: '#16A34A',
-  },
-  undoButton: {
-    backgroundColor: '#64748B',
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
+  title: { flex: 1, ...typography.cardTitle, color: colors.textPrimary },
+  date: { ...typography.body, color: colors.bluePrimary, fontWeight: '600', marginBottom: spacing.xs + 2 },
+  description: { ...typography.body, color: colors.textSecondary },
+  button: { marginTop: spacing.md + 2 },
 });

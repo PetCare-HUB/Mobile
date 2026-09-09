@@ -1,18 +1,17 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { AlertCard } from '../components/AlertCard';
+import { HealthScore } from '../components/HealthScore';
+import { PetAvatar } from '../components/PetAvatar';
 import { PreventiveItem } from '../components/PreventiveItem';
-import { ScoreCard } from '../components/ScoreCard';
+import { ScreenContainer } from '../components/ScreenContainer';
+import { SectionHeader } from '../components/SectionHeader';
+import { StatusCard } from '../components/StatusCard';
+import { colors, radius, spacing, typography } from '../theme';
 import { homeAlerts, petSummary } from '../data/mockData';
 import { getPetProfile, type PetProfile } from '../storage/petStorage';
 import { getPreventiveItems } from '../storage/preventiveStorage';
@@ -51,36 +50,33 @@ export function HomeScreen() {
   const pendentes = preventivos.filter((i) => !i.done).length;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScreenContainer>
       <Text style={styles.subtitle}>
         Monitoramento contínuo para transformar cuidado reativo em cuidado preventivo.
       </Text>
 
-      <ScoreCard
-        petName={petName}
-        score={petSummary.score}
-        status={petSummary.status}
-      />
+      <HealthScore petName={petName} score={petSummary.score} status={petSummary.status} />
 
-      <View style={styles.petInfoCard}>
-        <Text style={styles.petInfoTitle}>Pet cadastrado</Text>
-        <Text style={styles.petInfoText}>
-          Espécie: <Text style={styles.petInfoStrong}>{petSpecies}</Text>
-        </Text>
-        <Text style={styles.petInfoText}>
-          Raça: <Text style={styles.petInfoStrong}>{petBreed}</Text>
-        </Text>
+      <StatusCard>
+        <View style={styles.petInfoHeader}>
+          <PetAvatar name={petName} />
+          <View style={styles.petInfoHeaderText}>
+            <Text style={styles.petInfoTitle}>{petName}</Text>
+            <Text style={styles.petInfoSubtitle}>{petSpecies} • {petBreed}</Text>
+          </View>
+        </View>
         <Text style={styles.petInfoText}>
           Clínica: <Text style={styles.petInfoStrong}>{petClinic}</Text>
         </Text>
-      </View>
+      </StatusCard>
 
       <TouchableOpacity
         style={styles.preventivoButton}
         onPress={() => navigation.navigate('Preventive')}
+        activeOpacity={0.8}
       >
         <View style={styles.preventivoButtonContent}>
-          <MaterialCommunityIcons name="calendar-check" size={20} color="#2563EB" />
+          <MaterialCommunityIcons name="calendar-check" size={20} color={colors.greenPrimary} />
           <Text style={styles.preventivoButtonText}>Calendário Preventivo</Text>
           {pendentes > 0 && (
             <View style={styles.badge}>
@@ -90,10 +86,10 @@ export function HomeScreen() {
             </View>
           )}
         </View>
-        <MaterialCommunityIcons name="chevron-right" size={20} color="#94A3B8" />
+        <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSecondary} />
       </TouchableOpacity>
 
-      <Text style={styles.sectionTitle}>Alertas ativos</Text>
+      <SectionHeader title="Alertas ativos" />
       {homeAlerts.map((alert) => (
         <AlertCard
           key={alert.id}
@@ -103,7 +99,7 @@ export function HomeScreen() {
         />
       ))}
 
-      <Text style={styles.sectionTitle}>Próximas ações</Text>
+      <SectionHeader title="Próximas ações" />
       {preventivos.slice(0, 2).map((item) => (
         <PreventiveItem
           key={item.id}
@@ -113,48 +109,36 @@ export function HomeScreen() {
           done={item.done}
         />
       ))}
-    </ScrollView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  content: { padding: 24, paddingBottom: 40 },
-  subtitle: { fontSize: 15, color: '#475569', lineHeight: 22, marginBottom: 20 },
-  petInfoCard: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 16,
-  },
-  petInfoTitle: { fontSize: 17, fontWeight: 'bold', color: '#0F172A', marginBottom: 8 },
-  petInfoText: { fontSize: 14, color: '#475569', marginBottom: 4 },
-  petInfoStrong: { fontWeight: 'bold', color: '#0F172A' },
+  subtitle: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.lg },
+  petInfoHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },
+  petInfoHeaderText: { marginLeft: spacing.md },
+  petInfoTitle: { ...typography.cardTitle, color: colors.textPrimary },
+  petInfoSubtitle: { ...typography.body, color: colors.textSecondary },
+  petInfoText: { ...typography.body, color: colors.textSecondary },
+  petInfoStrong: { fontWeight: '600', color: colors.textPrimary },
   preventivoButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
-    padding: 16,
-    borderRadius: 14,
-    marginBottom: 20,
+    borderColor: colors.borderGray,
+    padding: spacing.cardPadding,
+    borderRadius: radius.cardSm,
+    marginBottom: spacing.xl,
   },
-  preventivoButtonContent: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  preventivoButtonText: { fontSize: 15, fontWeight: '600', color: '#2563EB' },
+  preventivoButtonContent: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 },
+  preventivoButtonText: { ...typography.subtitle, color: colors.textPrimary },
   badge: {
-    backgroundColor: '#DBEAFE',
-    borderRadius: 99,
-    paddingHorizontal: 8,
+    backgroundColor: colors.greenLight,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 2,
   },
-  badgeText: { fontSize: 11, color: '#1D4ED8', fontWeight: '600' },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#0F172A',
-    marginBottom: 12,
-    marginTop: 8,
-  },
+  badgeText: { ...typography.caption, color: colors.greenPrimary, fontWeight: '600' },
 });
