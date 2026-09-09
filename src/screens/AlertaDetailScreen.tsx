@@ -24,7 +24,7 @@ export function AlertaDetailScreen({ id }: AlertaDetailScreenProps) {
 
   return (
     <ScreenContainer>
-      <SectionHeader title="Detalhe do alerta" level="page" />
+      <SectionHeader title="Detalhe do alerta" subtitle={alert.timeAgo} level="page" />
       <AlertCard title={alert.title} message={alert.message} severity={alert.severity} />
       <Text style={styles.orientation}>
         Houve alteração no padrão recente. Observe o comportamento do pet e, caso a alteração

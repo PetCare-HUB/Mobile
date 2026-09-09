@@ -101,7 +101,12 @@ export function HomeScreen() {
   ];
 
   function handleTilePress(key: SummaryTile['key']) {
-    router.push(key === 'alertas' ? '/alertas' : '/saude');
+    if (key === 'alertas') {
+      router.push('/alertas');
+      return;
+    }
+    const saudeTab = key === 'atividade' ? 'coleira' : key;
+    router.push({ pathname: '/saude', params: { tab: saudeTab } });
   }
 
   return (
