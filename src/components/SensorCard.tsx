@@ -8,6 +8,7 @@ type SensorCardProps = {
   value: string;
   description: string;
   status?: HealthStatus;
+  color?: string;
 };
 
 function getStatusColor(status?: HealthStatus) {
@@ -17,8 +18,8 @@ function getStatusColor(status?: HealthStatus) {
   return colors.bluePrimary;
 }
 
-export function SensorCard({ title, value, description, status }: SensorCardProps) {
-  const color = getStatusColor(status);
+export function SensorCard({ title, value, description, status, color: colorOverride }: SensorCardProps) {
+  const color = colorOverride ?? getStatusColor(status);
 
   return (
     <View style={styles.card}>

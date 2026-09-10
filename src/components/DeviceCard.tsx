@@ -7,10 +7,11 @@ type DeviceCardProps = {
   title: string;
   connected: boolean;
   rightIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
+  rightIconColor?: string;
   rightValue?: string;
 };
 
-export function DeviceCard({ icon, title, connected, rightIcon, rightValue }: DeviceCardProps) {
+export function DeviceCard({ icon, title, connected, rightIcon, rightIconColor = colors.success, rightValue }: DeviceCardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.iconBadge}>
@@ -24,8 +25,8 @@ export function DeviceCard({ icon, title, connected, rightIcon, rightValue }: De
       </View>
       {rightValue ? (
         <View style={styles.rightValueRow}>
-          {rightIcon ? <MaterialCommunityIcons name={rightIcon} size={18} color={colors.success} /> : null}
-          <Text style={styles.rightValue}>{rightValue}</Text>
+          {rightIcon ? <MaterialCommunityIcons name={rightIcon} size={18} color={rightIconColor} /> : null}
+          <Text style={[styles.rightValue, { color: rightIconColor }]}>{rightValue}</Text>
         </View>
       ) : null}
     </View>

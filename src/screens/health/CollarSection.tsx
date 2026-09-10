@@ -14,6 +14,8 @@ import {
   STATUS_ATIVIDADE_ICON,
   STATUS_ATIVIDADE_LABEL,
   activityBars,
+  batteryColor,
+  batteryIcon,
   computeSinceLabel,
   computeTimeInState,
   filterByRange,
@@ -60,7 +62,8 @@ export function CollarSection({ petId }: CollarSectionProps) {
               icon="watch-variant"
               title="Coleira Smart"
               connected
-              rightIcon="battery-high"
+              rightIcon={batteryIcon(atual.nivelBateria)}
+              rightIconColor={batteryColor(atual.nivelBateria)}
               rightValue={`${atual.nivelBateria}%`}
             />
 

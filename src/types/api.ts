@@ -88,7 +88,7 @@ export type EventoPreventivoRequest = {
   dataPrevista: string;
 };
 
-export type StatusAtividade = 'DORMINDO' | 'ATIVO' | 'BRINCANDO';
+export type StatusAtividade = 'SEDENTARIO' | 'MODERADO' | 'ATIVO';
 
 export type LeituraColeiraResponse = {
   id: number;

@@ -8,7 +8,7 @@ import { QueryState } from '../../components/QueryState';
 import { StatusCard } from '../../components/StatusCard';
 import { colors, radius, spacing, typography } from '../../theme';
 import { useLeiturasComedouro } from '../../hooks/queries/useLeiturasComedouro';
-import { mediaConsumoDiario, sumConsumoHoje, ultimasRefeicoes } from '../../utils/leituraMappers';
+import { mediaConsumoDiario, reservoirColor, sumConsumoHoje, ultimasRefeicoes } from '../../utils/leituraMappers';
 
 type FeederSectionProps = {
   petId: number;
@@ -31,6 +31,7 @@ export function FeederSection({ petId }: FeederSectionProps) {
       {(leituras) => {
         const atual = leituras[0];
         const reservoirLow = atual.nivelRacaoPct < 20;
+        const reservoirTone = reservoirColor(atual.nivelRacaoPct);
         const todayGrams = Math.round(sumConsumoHoje(leituras));
         const averageGrams = mediaConsumoDiario(leituras);
         const changePercent = averageGrams > 0 ? Math.round(((todayGrams - averageGrams) / averageGrams) * 100) : 0;
@@ -43,17 +44,10 @@ export function FeederSection({ petId }: FeederSectionProps) {
             <StatusCard>
               <View style={styles.chartHeaderRow}>
                 <Text style={styles.chartTitle}>Nível do reservatório</Text>
-                <Text style={[styles.reservoirValue, reservoirLow && { color: colors.warning }]}>
-                  {atual.nivelRacaoPct}%
-                </Text>
+                <Text style={[styles.reservoirValue, { color: reservoirTone }]}>{atual.nivelRacaoPct}%</Text>
               </View>
               <View style={styles.track}>
-                <View
-                  style={[
-                    styles.fill,
-                    { width: `${atual.nivelRacaoPct}%`, backgroundColor: reservoirLow ? colors.warning : colors.success },
-                  ]}
-                />
+                <View style={[styles.fill, { width: `${atual.nivelRacaoPct}%`, backgroundColor: reservoirTone }]} />
               </View>
             </StatusCard>
 

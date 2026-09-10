@@ -1,19 +1,20 @@
 import type { MaterialCommunityIcons } from '@expo/vector-icons';
+import { colors } from '../theme';
 import type { HealthStatus } from '../types/pet';
 import type { LeituraAmbienteResponse, LeituraColeiraResponse, LeituraComedouroResponse, StatusAtividade } from '../types/api';
 
 export type LeituraRange = 'hoje' | '7dias' | '30dias';
 
 export const STATUS_ATIVIDADE_LABEL: Record<StatusAtividade, string> = {
-  DORMINDO: 'Repouso',
+  SEDENTARIO: 'Sedentário',
+  MODERADO: 'Moderado',
   ATIVO: 'Ativo',
-  BRINCANDO: 'Brincando',
 };
 
 export const STATUS_ATIVIDADE_ICON: Record<StatusAtividade, keyof typeof MaterialCommunityIcons.glyphMap> = {
-  DORMINDO: 'sleep',
+  SEDENTARIO: 'sleep',
+  MODERADO: 'walk',
   ATIVO: 'run',
-  BRINCANDO: 'tennis-ball',
 };
 
 function pad(n: number): string {
@@ -78,7 +79,7 @@ export function computeTimeInState(leituras: LeituraColeiraResponse[]): TimeInSt
     (a, b) => new Date(a.timestampLeitura).getTime() - new Date(b.timestampLeitura).getTime()
   );
 
-  const durationMs: Record<StatusAtividade, number> = { DORMINDO: 0, ATIVO: 0, BRINCANDO: 0 };
+  const durationMs: Record<StatusAtividade, number> = { SEDENTARIO: 0, MODERADO: 0, ATIVO: 0 };
 
   for (let i = 0; i < ordenadas.length; i += 1) {
     const atual = ordenadas[i];
@@ -87,9 +88,9 @@ export function computeTimeInState(leituras: LeituraColeiraResponse[]): TimeInSt
     durationMs[atual.statusAtividade] += Math.max(duracao, 0);
   }
 
-  const total = durationMs.DORMINDO + durationMs.ATIVO + durationMs.BRINCANDO;
+  const total = durationMs.SEDENTARIO + durationMs.MODERADO + durationMs.ATIVO;
 
-  const ordem: StatusAtividade[] = ['DORMINDO', 'ATIVO', 'BRINCANDO'];
+  const ordem: StatusAtividade[] = ['SEDENTARIO', 'MODERADO', 'ATIVO'];
   return ordem.map((key) => ({
     key,
     label: STATUS_ATIVIDADE_LABEL[key],
@@ -98,7 +99,7 @@ export function computeTimeInState(leituras: LeituraColeiraResponse[]): TimeInSt
   }));
 }
 
-const INTENSIDADE_ATIVIDADE: Record<StatusAtividade, number> = { DORMINDO: 1, ATIVO: 2, BRINCANDO: 3 };
+const INTENSIDADE_ATIVIDADE: Record<StatusAtividade, number> = { SEDENTARIO: 1, MODERADO: 2, ATIVO: 3 };
 
 export function activityBars(leituras: LeituraColeiraResponse[], range: LeituraRange): { data: number[]; labels: string[] } {
   const ordenadas = [...leituras].sort(
@@ -156,14 +157,34 @@ export function comfortLabel(leitura: LeituraAmbienteResponse): string {
   return isComfortable(leitura) ? 'Confortável' : 'Atenção necessária';
 }
 
-export function statusTemperatura(value: number): HealthStatus {
-  return value >= 10 && value <= 32 ? 'healthy' : 'attention';
-}
-
 export function statusUmidade(value: number): HealthStatus {
   return value >= 30 && value <= 75 ? 'healthy' : 'attention';
 }
 
 export function statusQualidadeAr(value: number): HealthStatus {
   return value <= 1000 ? 'healthy' : 'attention';
+}
+
+export function batteryIcon(nivelBateria: number): keyof typeof MaterialCommunityIcons.glyphMap {
+  if (nivelBateria < 20) return 'battery-alert';
+  if (nivelBateria < 50) return 'battery-medium';
+  return 'battery-high';
+}
+
+export function batteryColor(nivelBateria: number): string {
+  if (nivelBateria < 20) return colors.danger;
+  if (nivelBateria < 50) return colors.warning;
+  return colors.success;
+}
+
+export function reservoirColor(nivelRacaoPct: number): string {
+  if (nivelRacaoPct < 20) return colors.danger;
+  if (nivelRacaoPct < 50) return colors.warning;
+  return colors.success;
+}
+
+export function temperatureColor(temperaturaAmbiente: number): string {
+  if (temperaturaAmbiente > 32) return colors.danger;
+  if (temperaturaAmbiente < 10) return colors.bluePrimary;
+  return colors.success;
 }

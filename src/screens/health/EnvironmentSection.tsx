@@ -7,7 +7,7 @@ import { SensorCard } from '../../components/SensorCard';
 import { StatusCard } from '../../components/StatusCard';
 import { colors, radius, spacing, typography } from '../../theme';
 import { useLeiturasAmbiente } from '../../hooks/queries/useLeiturasAmbiente';
-import { comfortLabel, isComfortable, statusQualidadeAr, statusTemperatura, statusUmidade } from '../../utils/leituraMappers';
+import { comfortLabel, isComfortable, statusQualidadeAr, statusUmidade, temperatureColor } from '../../utils/leituraMappers';
 
 type EnvironmentSectionProps = {
   petId: number;
@@ -50,7 +50,7 @@ export function EnvironmentSection({ petId }: EnvironmentSectionProps) {
               title="Temperatura ambiente"
               value={`${atual.temperaturaAmbiente}°C`}
               description="Faixa segura: 10°C a 32°C."
-              status={statusTemperatura(atual.temperaturaAmbiente)}
+              color={temperatureColor(atual.temperaturaAmbiente)}
             />
             <SensorCard
               title="Umidade"
