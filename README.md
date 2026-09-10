@@ -2,7 +2,7 @@
 
 Aplicativo mobile desenvolvido em **React Native com Expo** para o Challenge FIAP 2026 — CLYVO VET.
 
-Interface do tutor dentro da plataforma **PetCare Hub**: acompanha a saúde do pet de forma contínua e preventiva, com login real, dados vindos da API Java (sem mock) e sessão persistida no dispositivo.
+aInterface do tutor dentro da plataforma **PetCare Hub**: acompanha a saúde do pet de forma contínua e preventiva, com login real, dados vindos da API Java (sem mock) e sessão persistida no dispositivo.
 
 ---
 
