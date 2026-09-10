@@ -16,12 +16,45 @@ export type AlertaTipo =
 
 export type TutorResumoResponse = {
   id: number;
-  [key: string]: unknown;
+  nome: string;
+  email: string;
 };
 
 export type ClinicaResumoResponse = {
   id: number;
-  [key: string]: unknown;
+  nome: string;
+};
+
+export type StatusAcesso = 'PRE_CADASTRADO' | 'ATIVO' | 'BLOQUEADO' | 'INATIVO';
+
+export type TutorResponse = {
+  id: number;
+  nome: string;
+  statusAcesso: StatusAcesso;
+  email: string;
+  telefone: string;
+  cpf: string;
+  dataCadastro: string;
+};
+
+export type TutorRequest = {
+  nome: string;
+  email: string;
+  telefone: string;
+  cpf: string;
+};
+
+export type PetRequest = {
+  nome: string;
+  especie: Especie;
+  raca: string | null;
+  dataNascimento: string | null;
+  pesoKg: number | null;
+  sexo: Sexo | null;
+  condicoesCronicas: string | null;
+  ativo: boolean;
+  tutorId: number;
+  clinicaId: number;
 };
 
 export type PetResponse = {

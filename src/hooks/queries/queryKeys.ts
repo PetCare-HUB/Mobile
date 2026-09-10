@@ -6,4 +6,5 @@ export const petKeys = {
   leiturasColeira: (petId: number | null) => ['pets', petId, 'leituras-coleira'] as const,
   leiturasComedouro: (petId: number | null) => ['pets', petId, 'leituras-comedouro'] as const,
   leiturasAmbiente: (petId: number | null) => ['pets', petId, 'leituras-ambiente'] as const,
+  tutor: (tutorId: number | null) => ['tutor', tutorId] as const,
 };

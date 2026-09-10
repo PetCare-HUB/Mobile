@@ -1,5 +1,5 @@
 import { requestWithColdStartRetry } from '../api/client';
-import type { AlertaSaudeResponse, PetResponse, ScoreSaudeResponse } from '../../types/api';
+import type { AlertaSaudeResponse, PetRequest, PetResponse, ScoreSaudeResponse } from '../../types/api';
 
 function extractPetsArray(raw: unknown): PetResponse[] {
   if (Array.isArray(raw)) return raw as PetResponse[];
@@ -25,4 +25,20 @@ export async function getPetScore(token: string, petId: number): Promise<ScoreSa
 
 export async function getPetAlerts(token: string, petId: number): Promise<AlertaSaudeResponse[]> {
   return requestWithColdStartRetry<AlertaSaudeResponse[]>(`/pets/${petId}/alertas/ativos`, { method: 'GET', token });
+}
+
+export async function createPet(token: string, payload: PetRequest): Promise<PetResponse> {
+  return requestWithColdStartRetry<PetResponse>('/pets', { method: 'POST', token, body: JSON.stringify(payload) });
+}
+
+export async function updatePet(token: string, petId: number, payload: PetRequest): Promise<PetResponse> {
+  return requestWithColdStartRetry<PetResponse>(`/pets/${petId}`, {
+    method: 'PUT',
+    token,
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deletePet(token: string, petId: number): Promise<void> {
+  await requestWithColdStartRetry<void>(`/pets/${petId}`, { method: 'DELETE', token });
 }

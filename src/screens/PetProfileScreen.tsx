@@ -1,297 +1,251 @@
 import { useEffect, useState } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import { AppInput } from '../components/AppInput';
-import { BreedPicker } from '../components/BreedPicker';
 import { Button } from '../components/Button';
 import { DeviceCard } from '../components/DeviceCard';
-import { EmptyState } from '../components/EmptyState';
-import { FieldLabel } from '../components/FieldLabel';
 import { PetAvatar } from '../components/PetAvatar';
-import { SectionHeader } from '../components/SectionHeader';
-import { SegmentedControl } from '../components/SegmentedControl';
+import { PetFormModal } from '../components/PetFormModal';
+import { PetSwitcherModal } from '../components/PetSwitcherModal';
+import { QueryState } from '../components/QueryState';
 import { StatusCard } from '../components/StatusCard';
+import { TutorFormModal } from '../components/TutorFormModal';
 import { UnderlineTabs } from '../components/UnderlineTabs';
 import { colors, radius, spacing, typography } from '../theme';
 import { useAuth } from '../contexts/auth/AuthContext';
-import { catBreeds, dogBreeds } from '../data/breeds';
-import { collarActivity, environmentSummary, feederConsumption, petTimeline } from '../data/mockData';
-import { getPetProfile, removePetProfile, savePetProfile } from '../storage/petStorage';
+import { usePetContext } from '../contexts/pet/PetContext';
+import { useLeiturasAmbiente } from '../hooks/queries/useLeiturasAmbiente';
+import { useLeiturasColeira } from '../hooks/queries/useLeiturasColeira';
+import { useLeiturasComedouro } from '../hooks/queries/useLeiturasComedouro';
+import { usePetAlerts } from '../hooks/queries/usePetAlerts';
+import { usePreventivePlan } from '../hooks/queries/usePreventivePlan';
+import { useTutor } from '../hooks/queries/useTutor';
+import { batteryColor, batteryIcon } from '../utils/leituraMappers';
+import { ESPECIE_LABEL, SEXO_LABEL, calcularIdade } from '../utils/petMappers';
+import { TIPO_LABEL, formatIsoDateBr } from '../utils/preventiveMappers';
 import { getPreferences, savePreferences } from '../storage/preferencesStorage';
 
-type ProfileTab = 'sobre' | 'clinica' | 'dispositivos' | 'historico';
+type ProfileTab = 'sobre' | 'tutor' | 'clinica' | 'dispositivos' | 'historico';
 
 const PROFILE_TABS: { key: ProfileTab; label: string }[] = [
   { key: 'sobre', label: 'Sobre' },
+  { key: 'tutor', label: 'Tutor' },
   { key: 'clinica', label: 'Clínica' },
   { key: 'dispositivos', label: 'Dispositivos' },
   { key: 'historico', label: 'Histórico' },
 ];
 
-type EspecieKey = 'Cão' | 'Gato' | 'Outro';
-const ESPECIE_OPTIONS: { key: EspecieKey; label: string }[] = [
-  { key: 'Cão', label: 'Cão' },
-  { key: 'Gato', label: 'Gato' },
-  { key: 'Outro', label: 'Outro' },
-];
-
-type SexoKey = 'Macho' | 'Fêmea';
-const SEXO_OPTIONS: { key: SexoKey; label: string }[] = [
-  { key: 'Macho', label: 'Macho' },
-  { key: 'Fêmea', label: 'Fêmea' },
-];
+type HistoricoItem = { id: string; rawDate: string; dateLabel: string; title: string };
 
 export function PetProfileScreen() {
   const { logout } = useAuth();
-  const [mode, setMode] = useState<'view' | 'edit'>('view');
-  const [tab, setTab] = useState<ProfileTab>('sobre');
+  const {
+    pets,
+    selectedPet,
+    selectedPetId,
+    setSelectedPetId,
+    isLoading: petsLoading,
+    isError: petsError,
+    error: petsErrorDetail,
+    refetch: refetchPets,
+  } = usePetContext();
+  const tutorQuery = useTutor();
+  const coleiraQuery = useLeiturasColeira(selectedPetId);
+  const comedouroQuery = useLeiturasComedouro(selectedPetId);
+  const ambienteQuery = useLeiturasAmbiente(selectedPetId);
+  const alertsQuery = usePetAlerts(selectedPetId);
+  const preventiveQuery = usePreventivePlan(selectedPetId);
 
-  const [nome, setNome] = useState('');
-  const [especie, setEspecie] = useState('');
-  const [raca, setRaca] = useState('');
-  const [idade, setIdade] = useState('');
-  const [peso, setPeso] = useState('');
-  const [clinica, setClinica] = useState('');
-  const [sexo, setSexo] = useState('');
-  const [microchip, setMicrochip] = useState('');
-  const [observacoes, setObservacoes] = useState('');
-  const [perfilCarregado, setPerfilCarregado] = useState(false);
+  const [tab, setTab] = useState<ProfileTab>('sobre');
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [petFormMode, setPetFormMode] = useState<'closed' | 'create' | 'edit'>('closed');
+  const [tutorFormOpen, setTutorFormOpen] = useState(false);
+
   const [notifAlertas, setNotifAlertas] = useState(true);
   const [notifPreventivo, setNotifPreventivo] = useState(true);
   const [notifRacao, setNotifRacao] = useState(true);
 
   useEffect(() => {
-    async function carregarPerfilSalvo() {
-      const perfilSalvo = await getPetProfile();
+    async function carregarPreferencias() {
       const prefs = await getPreferences();
-
-      if (perfilSalvo) {
-        setNome(perfilSalvo.nome);
-        setEspecie(perfilSalvo.especie);
-        setRaca(perfilSalvo.raca);
-        setIdade(perfilSalvo.idade);
-        setPeso(perfilSalvo.peso);
-        setClinica(perfilSalvo.clinica);
-        setSexo(perfilSalvo.sexo ?? '');
-        setMicrochip(perfilSalvo.microchip ?? '');
-        setObservacoes(perfilSalvo.observacoes ?? '');
-      }
-
-      if (prefs) {
-        setNotifAlertas(prefs.notifAlertas);
-        setNotifPreventivo(prefs.notifPreventivo);
-        setNotifRacao(prefs.notifRacao);
-      }
-
-      setPerfilCarregado(true);
+      setNotifAlertas(prefs.notifAlertas);
+      setNotifPreventivo(prefs.notifPreventivo);
+      setNotifRacao(prefs.notifRacao);
     }
-    carregarPerfilSalvo();
+    carregarPreferencias();
   }, []);
 
-  async function salvarPerfil() {
-    if (!nome || !especie || !raca || !idade || !peso || !clinica) {
-      Alert.alert('Atenção', 'Preencha todos os campos antes de salvar.');
-      return;
-    }
-    try {
-      await savePetProfile({ nome, especie, raca, idade, peso, clinica, sexo, microchip, observacoes });
-      await savePreferences({ notifAlertas, notifPreventivo, notifRacao });
-      setMode('view');
-      Alert.alert('Sucesso', 'Perfil do pet salvo no dispositivo.');
-    } catch {
-      Alert.alert('Erro', 'Não foi possível salvar o perfil do pet.');
-    }
+  function togglePref(setter: (fn: (v: boolean) => boolean) => void, atual: boolean, chave: 'notifAlertas' | 'notifPreventivo' | 'notifRacao') {
+    const novoValor = !atual;
+    setter(() => novoValor);
+    savePreferences({
+      notifAlertas: chave === 'notifAlertas' ? novoValor : notifAlertas,
+      notifPreventivo: chave === 'notifPreventivo' ? novoValor : notifPreventivo,
+      notifRacao: chave === 'notifRacao' ? novoValor : notifRacao,
+    });
   }
 
-  async function limparFormulario() {
-    setNome('');
-    setEspecie('');
-    setRaca('');
-    setIdade('');
-    setPeso('');
-    setClinica('');
-    setSexo('');
-    setMicrochip('');
-    setObservacoes('');
-    try {
-      await removePetProfile();
-      Alert.alert('Perfil removido', 'Os dados salvos foram apagados.');
-    } catch {
-      Alert.alert('Erro', 'Não foi possível remover os dados salvos.');
-    }
-  }
-
-  if (!perfilCarregado) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Carregando perfil...</Text>
-      </View>
-    );
-  }
-
-  const temPerfil = Boolean(nome);
-
-  if (mode === 'edit') {
-    return (
-      <KeyboardAvoidingView style={styles.keyboardContainer} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView
-          style={styles.container}
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <SectionHeader
-            title="Editar perfil"
-            subtitle="Essas informações serão salvas localmente com AsyncStorage."
-            level="page"
-          />
-
-          <StatusCard>
-            <AppInput label="Nome do pet" placeholder="Ex: Rex" value={nome} onChangeText={setNome} icon="paw-outline" required />
-
-            <View style={styles.fieldGroup}>
-              <FieldLabel text="Espécie" required />
-              <SegmentedControl
-                segments={ESPECIE_OPTIONS}
-                value={(especie as EspecieKey) || 'Cão'}
-                onChange={setEspecie}
-              />
-            </View>
-
-            {especie === 'Outro' ? (
-              <AppInput label="Raça" placeholder="Ex: Furão" value={raca} onChangeText={setRaca} icon="tag-outline" required />
-            ) : (
-              <BreedPicker
-                label="Raça"
-                value={raca}
-                onChange={setRaca}
-                options={especie === 'Gato' ? catBreeds : dogBreeds}
-                required
-              />
-            )}
-
-            <AppInput label="Idade" placeholder="Ex: 4" value={idade} onChangeText={setIdade} keyboardType="numeric" icon="cake-variant-outline" required />
-            <AppInput label="Peso em kg" placeholder="Ex: 28.5" value={peso} onChangeText={setPeso} keyboardType="decimal-pad" icon="weight-kilogram" required />
-
-            <View style={styles.fieldGroup}>
-              <FieldLabel text="Sexo" required={false} />
-              <SegmentedControl
-                segments={SEXO_OPTIONS}
-                value={(sexo as SexoKey) || 'Macho'}
-                onChange={setSexo}
-              />
-            </View>
-
-            <AppInput label="Microchip" placeholder="Ex: 98S112004567890" value={microchip} onChangeText={setMicrochip} icon="chip" required={false} />
-            <AppInput label="Clínica vinculada" placeholder="Ex: Clínica Clyvo Vet" value={clinica} onChangeText={setClinica} icon="hospital-box-outline" required />
-            <AppInput label="Informações adicionais" placeholder="Temperamento, alergias..." value={observacoes} onChangeText={setObservacoes} icon="note-text-outline" required={false} />
-
-            <Button label="Salvar perfil" onPress={salvarPerfil} style={styles.saveButton} />
-            <Button label="Cancelar" variant="secondary" onPress={() => setMode('view')} style={styles.cancelButton} />
-            <Button label="Limpar dados salvos" variant="danger" onPress={limparFormulario} style={styles.clearButton} />
-          </StatusCard>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    );
-  }
+  const historico: HistoricoItem[] = [
+    ...(alertsQuery.data ?? []).map((alerta) => ({
+      id: `alerta-${alerta.id}`,
+      rawDate: alerta.dataAlerta,
+      dateLabel: formatIsoDateBr(alerta.dataAlerta.slice(0, 10)),
+      title: alerta.mensagem,
+    })),
+    ...(preventiveQuery.data ?? [])
+      .filter((evento) => evento.status === 'REALIZADO' && evento.dataRealizacao)
+      .map((evento) => ({
+        id: `preventivo-${evento.id}`,
+        rawDate: evento.dataRealizacao as string,
+        dateLabel: formatIsoDateBr(evento.dataRealizacao as string),
+        title: `${TIPO_LABEL[evento.tipo]} concluído — ${evento.descricao}`,
+      })),
+  ].sort((a, b) => (a.rawDate < b.rawDate ? 1 : -1));
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      {!temPerfil ? (
-        <EmptyState
-          title="Nenhum pet cadastrado"
-          description="Cadastre os dados do seu pet para ver o perfil completo."
-          icon="paw-outline"
-        />
-      ) : (
-        <View style={styles.headerRow}>
-          <PetAvatar name={nome} size={64} />
-          <View style={styles.headerText}>
-            <Text style={styles.petName}>{nome}</Text>
-            <Text style={styles.petSubtitle}>{raca || especie} • {idade} anos</Text>
-          </View>
-        </View>
-      )}
-
-      <Button label="Editar" variant="secondary" onPress={() => setMode('edit')} style={styles.editButton} />
-
-      {temPerfil && (
-        <>
-          <UnderlineTabs tabs={PROFILE_TABS} value={tab} onChange={setTab} />
-
-          {tab === 'sobre' && (
-            <>
-              <View style={styles.grid}>
-                <InfoTile icon="paw-outline" label="Espécie" value={especie} />
-                <InfoTile icon="tag-outline" label="Raça" value={raca} />
-                <InfoTile icon="weight-kilogram" label="Peso" value={`${peso} kg`} />
-                <InfoTile icon="gender-male-female" label="Sexo" value={sexo || 'Não informado'} />
-                <InfoTile icon="cake-variant-outline" label="Idade" value={`${idade} anos`} />
-                <InfoTile icon="chip" label="Microchip" value={microchip || 'Não informado'} />
+      <QueryState
+        isLoading={petsLoading}
+        isError={petsError}
+        error={petsErrorDetail}
+        data={pets}
+        isEmpty={(p) => p.length === 0}
+        onRetry={refetchPets}
+        emptyTitle="Nenhum pet cadastrado"
+        emptyDescription="Assim que sua clínica vincular um pet à sua conta, ele aparece aqui."
+      >
+        {() => (
+          <>
+            <TouchableOpacity style={styles.headerRow} onPress={() => setSwitcherOpen(true)} activeOpacity={0.8}>
+              <PetAvatar name={selectedPet?.nome ?? ''} size={64} />
+              <View style={styles.headerText}>
+                <View style={styles.headerNameRow}>
+                  <Text style={styles.petName}>{selectedPet?.nome}</Text>
+                  <MaterialCommunityIcons name="chevron-down" size={18} color={colors.textSecondary} />
+                </View>
+                <Text style={styles.petSubtitle}>
+                  {selectedPet ? ESPECIE_LABEL[selectedPet.especie] : ''} • {calcularIdade(selectedPet?.dataNascimento ?? null)}
+                </Text>
               </View>
+            </TouchableOpacity>
 
-              <Text style={styles.sectionTitle}>Informações adicionais</Text>
-              <Text style={styles.observations}>{observacoes || 'Nenhuma informação adicional cadastrada.'}</Text>
-            </>
-          )}
+            <Button label="Editar pet" variant="secondary" onPress={() => setPetFormMode('edit')} style={styles.editButton} />
 
-          {tab === 'clinica' && (
-            <StatusCard>
-              <View style={styles.clinicRow}>
-                <View style={styles.clinicIcon}>
-                  <MaterialCommunityIcons name="hospital-box-outline" size={20} color={colors.greenPrimary} />
+            <UnderlineTabs tabs={PROFILE_TABS} value={tab} onChange={setTab} />
+
+            {tab === 'sobre' && selectedPet && (
+              <>
+                <View style={styles.grid}>
+                  <InfoTile icon="paw-outline" label="Espécie" value={ESPECIE_LABEL[selectedPet.especie]} />
+                  <InfoTile icon="tag-outline" label="Raça" value={selectedPet.raca || 'Não informado'} />
+                  <InfoTile icon="weight-kilogram" label="Peso" value={selectedPet.pesoKg != null ? `${selectedPet.pesoKg} kg` : 'Não informado'} />
+                  <InfoTile icon="gender-male-female" label="Sexo" value={selectedPet.sexo ? SEXO_LABEL[selectedPet.sexo] : 'Não informado'} />
+                  <InfoTile icon="cake-variant-outline" label="Idade" value={calcularIdade(selectedPet.dataNascimento)} />
                 </View>
-                <View>
-                  <Text style={styles.clinicLabel}>Clínica responsável</Text>
-                  <Text style={styles.clinicValue}>{clinica || 'Nenhuma clínica vinculada'}</Text>
-                </View>
-              </View>
-            </StatusCard>
-          )}
 
-          {tab === 'dispositivos' && (
-            <>
-              <DeviceCard icon="watch-variant" title="Coleira Smart" connected={collarActivity.connected} rightIcon="battery-high" rightValue={`${collarActivity.battery}%`} />
-              <DeviceCard icon="bowl-mix-outline" title="Comedouro Inteligente" connected={feederConsumption.connected} />
-              <DeviceCard icon="home-thermometer-outline" title="Sensor de Ambiente" connected={environmentSummary.connected} />
-            </>
-          )}
+                <Text style={styles.sectionTitle}>Condições crônicas</Text>
+                <Text style={styles.observations}>{selectedPet.condicoesCronicas || 'Nenhuma condição crônica cadastrada.'}</Text>
+              </>
+            )}
 
-          {tab === 'historico' && (
-            <View>
-              {petTimeline.map((event) => (
-                <View key={event.id} style={styles.timelineRow}>
-                  <View style={styles.timelineDot} />
-                  <Text style={styles.timelineDate}>{event.date}</Text>
-                  <Text style={styles.timelineTitle}>{event.title}</Text>
+            {tab === 'tutor' && (
+              <QueryState
+                isLoading={tutorQuery.isLoading}
+                isError={tutorQuery.isError}
+                error={tutorQuery.error}
+                data={tutorQuery.data}
+                onRetry={tutorQuery.refetch}
+                emptyTitle="Dados do tutor indisponíveis"
+              >
+                {(tutor) => (
+                  <StatusCard>
+                    <InfoRow icon="account-outline" label="Nome" value={tutor.nome} />
+                    <InfoRow icon="email-outline" label="E-mail" value={tutor.email} />
+                    <InfoRow icon="phone-outline" label="Telefone" value={tutor.telefone} />
+                    <Button label="Editar meus dados" variant="secondary" onPress={() => setTutorFormOpen(true)} style={styles.tutorEditButton} />
+                  </StatusCard>
+                )}
+              </QueryState>
+            )}
+
+            {tab === 'clinica' && selectedPet && (
+              <StatusCard>
+                <View style={styles.clinicRow}>
+                  <View style={styles.clinicIcon}>
+                    <MaterialCommunityIcons name="hospital-box-outline" size={20} color={colors.greenPrimary} />
+                  </View>
+                  <View>
+                    <Text style={styles.clinicLabel}>Clínica responsável</Text>
+                    <Text style={styles.clinicValue}>{selectedPet.clinica.nome}</Text>
+                  </View>
                 </View>
-              ))}
-            </View>
-          )}
-        </>
-      )}
+              </StatusCard>
+            )}
+
+            {tab === 'dispositivos' && (
+              <>
+                <QueryState isLoading={coleiraQuery.isLoading} isError={coleiraQuery.isError} error={coleiraQuery.error} data={coleiraQuery.data}>
+                  {(leituras) => (
+                    <DeviceCard
+                      icon="watch-variant"
+                      title="Coleira Smart"
+                      connected={leituras.length > 0}
+                      rightIcon={leituras[0] ? batteryIcon(leituras[0].nivelBateria) : undefined}
+                      rightIconColor={leituras[0] ? batteryColor(leituras[0].nivelBateria) : undefined}
+                      rightValue={leituras[0] ? `${leituras[0].nivelBateria}%` : undefined}
+                    />
+                  )}
+                </QueryState>
+                <QueryState isLoading={comedouroQuery.isLoading} isError={comedouroQuery.isError} error={comedouroQuery.error} data={comedouroQuery.data}>
+                  {(leituras) => <DeviceCard icon="bowl-mix-outline" title="Comedouro Inteligente" connected={leituras.length > 0} />}
+                </QueryState>
+                <QueryState isLoading={ambienteQuery.isLoading} isError={ambienteQuery.isError} error={ambienteQuery.error} data={ambienteQuery.data}>
+                  {(leituras) => <DeviceCard icon="home-thermometer-outline" title="Sensor de Ambiente" connected={leituras.length > 0} />}
+                </QueryState>
+              </>
+            )}
+
+            {tab === 'historico' && (
+              <QueryState
+                isLoading={alertsQuery.isLoading || preventiveQuery.isLoading}
+                isError={alertsQuery.isError || preventiveQuery.isError}
+                error={alertsQuery.error ?? preventiveQuery.error}
+                data={historico}
+                isEmpty={(items) => items.length === 0}
+                emptyTitle="Nenhum evento registrado ainda"
+              >
+                {(items) => (
+                  <View>
+                    {items.map((event) => (
+                      <View key={event.id} style={styles.timelineRow}>
+                        <View style={styles.timelineDot} />
+                        <Text style={styles.timelineDate}>{event.dateLabel}</Text>
+                        <Text style={styles.timelineTitle}>{event.title}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </QueryState>
+            )}
+          </>
+        )}
+      </QueryState>
 
       <StatusCard style={styles.prefsCard}>
         <Text style={styles.prefsTitle}>Preferências de notificação</Text>
 
         {[
-          { label: 'Alertas de saúde', value: notifAlertas, toggle: () => setNotifAlertas((v) => !v) },
-          { label: 'Lembretes preventivos', value: notifPreventivo, toggle: () => setNotifPreventivo((v) => !v) },
-          { label: 'Alerta de ração baixa', value: notifRacao, toggle: () => setNotifRacao((v) => !v) },
-        ].map(({ label, value, toggle }) => (
+          { chave: 'notifAlertas' as const, label: 'Alertas de saúde', value: notifAlertas, setter: setNotifAlertas },
+          { chave: 'notifPreventivo' as const, label: 'Lembretes preventivos', value: notifPreventivo, setter: setNotifPreventivo },
+          { chave: 'notifRacao' as const, label: 'Alerta de ração baixa', value: notifRacao, setter: setNotifRacao },
+        ].map(({ chave, label, value, setter }) => (
           <View key={label} style={styles.prefRow}>
             <Text style={styles.prefLabel}>{label}</Text>
-            <TouchableOpacity onPress={toggle} style={[styles.toggle, value && styles.toggleActive]} activeOpacity={0.8}>
+            <TouchableOpacity
+              onPress={() => togglePref(setter, value, chave)}
+              style={[styles.toggle, value && styles.toggleActive]}
+              activeOpacity={0.8}
+            >
               <View style={[styles.toggleThumb, value && styles.toggleThumbActive]} />
             </TouchableOpacity>
           </View>
@@ -299,6 +253,27 @@ export function PetProfileScreen() {
       </StatusCard>
 
       <Button label="Sair da conta" variant="secondary" onPress={logout} style={styles.logoutButton} />
+
+      <PetSwitcherModal
+        visible={switcherOpen}
+        onClose={() => setSwitcherOpen(false)}
+        pets={pets}
+        selectedPetId={selectedPetId}
+        onSelect={setSelectedPetId}
+        onAddPet={() => setPetFormMode('create')}
+      />
+
+      <PetFormModal
+        visible={petFormMode !== 'closed'}
+        onClose={() => setPetFormMode('closed')}
+        mode={petFormMode === 'create' ? 'create' : 'edit'}
+        pet={petFormMode === 'edit' ? selectedPet ?? undefined : undefined}
+        defaultClinicaId={pets[0]?.clinica.id ?? null}
+      />
+
+      {tutorQuery.data ? (
+        <TutorFormModal visible={tutorFormOpen} onClose={() => setTutorFormOpen(false)} tutor={tutorQuery.data} />
+      ) : null}
     </ScrollView>
   );
 }
@@ -315,14 +290,26 @@ function InfoTile({ icon, label, value }: { icon: keyof typeof MaterialCommunity
   );
 }
 
+function InfoRow({ icon, label, value }: { icon: keyof typeof MaterialCommunityIcons.glyphMap; label: string; value: string }) {
+  return (
+    <View style={styles.infoRow}>
+      <View style={styles.infoRowIcon}>
+        <MaterialCommunityIcons name={icon} size={18} color={colors.greenPrimary} />
+      </View>
+      <View>
+        <Text style={styles.infoRowLabel}>{label}</Text>
+        <Text style={styles.infoRowValue}>{value}</Text>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  keyboardContainer: { flex: 1, backgroundColor: colors.background },
   container: { flex: 1, backgroundColor: colors.background },
   content: { paddingHorizontal: spacing.screenPadding, paddingTop: spacing.lg, paddingBottom: spacing['2xl'] },
-  loadingContainer: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
-  loadingText: { ...typography.body, color: colors.textSecondary },
   headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },
   headerText: { marginLeft: spacing.md },
+  headerNameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   petName: { ...typography.pageTitle, color: colors.textPrimary },
   petSubtitle: { ...typography.body, color: colors.textSecondary, marginTop: spacing.xs / 2 },
   editButton: { alignSelf: 'flex-start', paddingHorizontal: spacing.xl, marginBottom: spacing.lg },
@@ -348,6 +335,19 @@ const styles = StyleSheet.create({
   infoTileValue: { ...typography.subtitle, color: colors.textPrimary, marginTop: spacing.xs / 2 },
   sectionTitle: { ...typography.cardTitle, color: colors.textPrimary, marginBottom: spacing.sm },
   observations: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.lg },
+  infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },
+  infoRowIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.pill,
+    backgroundColor: colors.greenLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+  },
+  infoRowLabel: { ...typography.secondaryInfo, color: colors.textSecondary },
+  infoRowValue: { ...typography.subtitle, color: colors.textPrimary, marginTop: spacing.xs / 2 },
+  tutorEditButton: { marginTop: spacing.sm },
   clinicRow: { flexDirection: 'row', alignItems: 'center' },
   clinicIcon: {
     width: 40,
@@ -364,10 +364,6 @@ const styles = StyleSheet.create({
   timelineDot: { width: 8, height: 8, borderRadius: radius.pill, backgroundColor: colors.greenPrimary, marginRight: spacing.md },
   timelineDate: { ...typography.secondaryInfo, color: colors.textSecondary, width: 56 },
   timelineTitle: { ...typography.body, color: colors.textPrimary, flex: 1 },
-  fieldGroup: { marginBottom: spacing.md },
-  saveButton: { marginTop: spacing.xs },
-  cancelButton: { marginTop: spacing.md },
-  clearButton: { marginTop: spacing.md },
   prefsCard: { marginTop: spacing.lg, marginBottom: spacing.lg },
   logoutButton: { marginBottom: spacing.lg },
   prefsTitle: { ...typography.cardTitle, color: colors.textPrimary, marginBottom: spacing.md },

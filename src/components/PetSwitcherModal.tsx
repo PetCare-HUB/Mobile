@@ -1,14 +1,9 @@
 import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors, radius, spacing, typography } from '../theme';
+import { ESPECIE_LABEL } from '../utils/petMappers';
 import type { PetResponse } from '../types/api';
 import { PetAvatar } from './PetAvatar';
-
-const ESPECIE_LABEL: Record<PetResponse['especie'], string> = {
-  CAO: 'Cachorro',
-  GATO: 'Gato',
-  OUTRO: 'Outro',
-};
 
 type PetSwitcherModalProps = {
   visible: boolean;
@@ -16,9 +11,10 @@ type PetSwitcherModalProps = {
   pets: PetResponse[];
   selectedPetId: number | null;
   onSelect: (petId: number) => void;
+  onAddPet?: () => void;
 };
 
-export function PetSwitcherModal({ visible, onClose, pets, selectedPetId, onSelect }: PetSwitcherModalProps) {
+export function PetSwitcherModal({ visible, onClose, pets, selectedPetId, onSelect, onAddPet }: PetSwitcherModalProps) {
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
@@ -53,6 +49,22 @@ export function PetSwitcherModal({ visible, onClose, pets, selectedPetId, onSele
               </TouchableOpacity>
             )}
           />
+
+          {onAddPet ? (
+            <TouchableOpacity
+              style={styles.addRow}
+              onPress={() => {
+                onClose();
+                onAddPet();
+              }}
+              activeOpacity={0.8}
+            >
+              <View style={styles.addIcon}>
+                <MaterialCommunityIcons name="plus" size={20} color={colors.greenPrimary} />
+              </View>
+              <Text style={styles.addLabel}>Adicionar novo pet</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
       </View>
     </Modal>
@@ -83,4 +95,14 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, marginLeft: spacing.md },
   rowName: { ...typography.subtitle, color: colors.textPrimary },
   rowSubtitle: { ...typography.secondaryInfo, color: colors.textSecondary, marginTop: spacing.xs / 2 },
+  addRow: { flexDirection: 'row', alignItems: 'center', paddingTop: spacing.md },
+  addIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: colors.greenLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addLabel: { ...typography.subtitle, color: colors.greenPrimary, marginLeft: spacing.md },
 });

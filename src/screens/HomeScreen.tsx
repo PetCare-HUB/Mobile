@@ -6,6 +6,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { HealthScore } from '../components/HealthScore';
 import { PetAvatar } from '../components/PetAvatar';
+import { PetFormModal } from '../components/PetFormModal';
 import { PetSwitcherModal } from '../components/PetSwitcherModal';
 import { QueryState } from '../components/QueryState';
 import { colors, radius, spacing, typography } from '../theme';
@@ -17,15 +18,10 @@ import { usePetAlerts } from '../hooks/queries/usePetAlerts';
 import { usePetScore } from '../hooks/queries/usePetScore';
 import { usePreventivePlan } from '../hooks/queries/usePreventivePlan';
 import { comfortLabel, STATUS_ATIVIDADE_LABEL } from '../utils/leituraMappers';
+import { ESPECIE_LABEL } from '../utils/petMappers';
 import { formatIsoDateBr } from '../utils/preventiveMappers';
-import type { Especie, ScoreCategoria } from '../types/api';
+import type { ScoreCategoria } from '../types/api';
 import type { HealthStatus } from '../types/pet';
-
-const ESPECIE_LABEL: Record<Especie, string> = {
-  CAO: 'Cachorro',
-  GATO: 'Gato',
-  OUTRO: 'Outro',
-};
 
 const CATEGORIA_TO_STATUS: Record<ScoreCategoria, HealthStatus> = {
   VERDE: 'healthy',
@@ -61,6 +57,7 @@ export function HomeScreen() {
   const comedouroQuery = useLeiturasComedouro(selectedPetId);
   const ambienteQuery = useLeiturasAmbiente(selectedPetId);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [addPetOpen, setAddPetOpen] = useState(false);
 
   const upcomingItems = (preventiveQuery.data ?? [])
     .filter((evento) => evento.status === 'PENDENTE')
@@ -242,6 +239,14 @@ export function HomeScreen() {
         pets={pets}
         selectedPetId={selectedPetId}
         onSelect={setSelectedPetId}
+        onAddPet={() => setAddPetOpen(true)}
+      />
+
+      <PetFormModal
+        visible={addPetOpen}
+        onClose={() => setAddPetOpen(false)}
+        mode="create"
+        defaultClinicaId={pets[0]?.clinica.id ?? null}
       />
     </View>
   );

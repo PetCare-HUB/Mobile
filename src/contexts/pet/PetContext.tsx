@@ -6,7 +6,7 @@ type PetContextValue = {
   pets: PetResponse[];
   selectedPetId: number | null;
   selectedPet: PetResponse | null;
-  setSelectedPetId: (id: number) => void;
+  setSelectedPetId: (id: number | null) => void;
   isLoading: boolean;
   isError: boolean;
   error: unknown;
@@ -20,9 +20,10 @@ export function PetProvider({ children }: { children: ReactNode }) {
   const [selectedPetId, setSelectedPetId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (selectedPetId == null && pets.length > 0) {
-      setSelectedPetId(pets[0].id);
-    }
+    const aindaExiste = selectedPetId != null && pets.some((pet) => pet.id === selectedPetId);
+    if (aindaExiste) return;
+
+    setSelectedPetId(pets.length > 0 ? pets[0].id : null);
   }, [pets, selectedPetId]);
 
   const selectedPet = pets.find((pet) => pet.id === selectedPetId) ?? null;
