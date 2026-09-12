@@ -35,6 +35,9 @@ export type TutorResponse = {
   telefone: string;
   cpf: string;
   dataCadastro: string;
+  // Clínica do pré-cadastro. Nulo pra tutores criados antes dessa coluna
+  // existir no backend (V9__add_tutor_clinica.sql).
+  clinica: ClinicaResumoResponse | null;
 };
 
 export type TutorRequest = {
@@ -116,6 +119,14 @@ export type EventoPreventivoResponse = {
 
 export type EventoPreventivoRequest = {
   petId: number;
+  tipo: TipoEventoPreventivo;
+  descricao: string;
+  dataPrevista: string;
+};
+
+// Igual ao request de criação, sem petId (não dá pra reatribuir o
+// lembrete a outro pet numa edição).
+export type EventoPreventivoUpdateRequest = {
   tipo: TipoEventoPreventivo;
   descricao: string;
   dataPrevista: string;

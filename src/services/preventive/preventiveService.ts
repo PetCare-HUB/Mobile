@@ -1,5 +1,5 @@
 import { apiRequest, requestWithColdStartRetry } from '../api/client';
-import type { EventoPreventivoRequest, EventoPreventivoResponse } from '../../types/api';
+import type { EventoPreventivoRequest, EventoPreventivoResponse, EventoPreventivoUpdateRequest } from '../../types/api';
 
 export async function getPlanoPreventivo(token: string, petId: number): Promise<EventoPreventivoResponse[]> {
   return requestWithColdStartRetry<EventoPreventivoResponse[]>(`/pets/${petId}/plano-preventivo`, {
@@ -28,4 +28,20 @@ export async function criarEventoPreventivo(
     body: JSON.stringify(payload),
     timeoutMs: 45_000,
   });
+}
+
+export async function atualizarEventoPreventivo(
+  token: string,
+  eventoId: number,
+  payload: EventoPreventivoUpdateRequest
+): Promise<EventoPreventivoResponse> {
+  return requestWithColdStartRetry<EventoPreventivoResponse>(`/eventos-preventivos/${eventoId}`, {
+    method: 'PUT',
+    token,
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function excluirEventoPreventivo(token: string, eventoId: number): Promise<void> {
+  await requestWithColdStartRetry<void>(`/eventos-preventivos/${eventoId}`, { method: 'DELETE', token });
 }

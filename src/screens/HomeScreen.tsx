@@ -17,6 +17,7 @@ import { useLeiturasComedouro } from '../hooks/queries/useLeiturasComedouro';
 import { usePetAlerts } from '../hooks/queries/usePetAlerts';
 import { usePetScore } from '../hooks/queries/usePetScore';
 import { usePreventivePlan } from '../hooks/queries/usePreventivePlan';
+import { useTutor } from '../hooks/queries/useTutor';
 import { comfortLabel, STATUS_ATIVIDADE_LABEL } from '../utils/leituraMappers';
 import { ESPECIE_LABEL } from '../utils/petMappers';
 import { formatIsoDateBr } from '../utils/preventiveMappers';
@@ -53,6 +54,7 @@ export function HomeScreen() {
   const scoreQuery = usePetScore(selectedPetId);
   const alertsQuery = usePetAlerts(selectedPetId);
   const preventiveQuery = usePreventivePlan(selectedPetId);
+  const tutorQuery = useTutor();
   const coleiraQuery = useLeiturasColeira(selectedPetId);
   const comedouroQuery = useLeiturasComedouro(selectedPetId);
   const ambienteQuery = useLeiturasAmbiente(selectedPetId);
@@ -246,7 +248,7 @@ export function HomeScreen() {
         visible={addPetOpen}
         onClose={() => setAddPetOpen(false)}
         mode="create"
-        defaultClinicaId={pets[0]?.clinica.id ?? null}
+        defaultClinicaId={pets[0]?.clinica.id ?? tutorQuery.data?.clinica?.id ?? null}
       />
     </View>
   );

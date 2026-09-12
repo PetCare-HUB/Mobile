@@ -37,6 +37,7 @@ const FILTER_TIPOS: Record<FilterKey, TipoEventoPreventivo[] | null> = {
 export function PreventiveScreen() {
   const [filter, setFilter] = useState<FilterKey>('todos');
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [eventoEditando, setEventoEditando] = useState<EventoPreventivoResponse | null>(null);
   const {
     selectedPetId,
     isLoading: petsLoading,
@@ -163,6 +164,15 @@ export function PreventiveScreen() {
                             {processando ? 'Salvando...' : statusLabel(evento)}
                           </Text>
                         </View>
+                        {!done ? (
+                          <TouchableOpacity
+                            onPress={() => setEventoEditando(evento)}
+                            hitSlop={8}
+                            style={styles.editButton}
+                          >
+                            <MaterialCommunityIcons name="pencil-outline" size={18} color={colors.textSecondary} />
+                          </TouchableOpacity>
+                        ) : null}
                       </TouchableOpacity>
                     );
                   })}
@@ -182,6 +192,16 @@ export function PreventiveScreen() {
 
       {selectedPetId ? (
         <AddReminderModal visible={addModalOpen} petId={selectedPetId} onClose={() => setAddModalOpen(false)} />
+      ) : null}
+
+      {selectedPetId && eventoEditando ? (
+        <AddReminderModal
+          visible
+          mode="edit"
+          petId={selectedPetId}
+          evento={eventoEditando}
+          onClose={() => setEventoEditando(null)}
+        />
       ) : null}
     </ScreenContainer>
   );
@@ -215,5 +235,6 @@ const styles = StyleSheet.create({
   rowText: { flex: 1 },
   rowTitle: { ...typography.subtitle, color: colors.textPrimary },
   rowDate: { ...typography.secondaryInfo, fontWeight: '600', marginTop: spacing.xs / 2 },
+  editButton: { padding: spacing.xs, marginLeft: spacing.xs },
   addButton: { marginTop: spacing.md, marginBottom: spacing.lg },
 });

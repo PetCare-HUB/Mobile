@@ -9,14 +9,14 @@ function extractPetsArray(raw: unknown): PetResponse[] {
   return [];
 }
 
-// TODO: hoje GET /pets no backend devolve os pets de TODOS os tutores, paginado
-// (10 por página por padrão), sem filtro por usuário autenticado. Enquanto isso
-// não muda no Java:
-// - pedimos uma página grande (`size`) pra não perder pet de página 2+;
-// - filtramos por tutor no cliente, e NUNCA caímos de volta pra lista sem
-//   filtro (mesmo que o filtro dê vazio) — isso vazaria pet de outro tutor.
-// Quando o backend passar a filtrar por tutor autenticado, isso simplifica.
-const PETS_PAGE_SIZE = 1000;
+// O Java (a partir do commit 89742c6) já filtra GET /pets pelo tutor
+// autenticado direto no servidor. MAS: enquanto não confirmarmos que o
+// deploy em produção já está rodando essa versão, mantemos o filtro no
+// cliente como segunda camada de defesa — nunca custa caro e evita
+// vazar pet de outro tutor caso o servidor em produção ainda esteja
+// numa versão antiga (deploy atrasado/falho). NUNCA cai de volta pra
+// lista sem filtro, mesmo que o filtro dê vazio.
+const PETS_PAGE_SIZE = 100;
 
 export async function getPets(token: string, tutorId: number | null): Promise<PetResponse[]> {
   const raw = await requestWithColdStartRetry<unknown>(`/pets?size=${PETS_PAGE_SIZE}`, { method: 'GET', token });

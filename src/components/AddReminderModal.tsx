@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+import { useAtualizarEventoPreventivo } from '../hooks/mutations/useAtualizarEventoPreventivo';
 import { useCriarEventoPreventivo } from '../hooks/mutations/useCriarEventoPreventivo';
+import { useExcluirEventoPreventivo } from '../hooks/mutations/useExcluirEventoPreventivo';
 import { colors, radius, spacing, typography } from '../theme';
 import { TIPO_LABEL, isValidIsoDate, todayIsoDate } from '../utils/preventiveMappers';
-import type { TipoEventoPreventivo } from '../types/api';
+import type { EventoPreventivoResponse, TipoEventoPreventivo } from '../types/api';
 import { AppInput } from './AppInput';
 import { Button } from './Button';
 import { SegmentedControl } from './SegmentedControl';
@@ -18,24 +20,29 @@ type AddReminderModalProps = {
   visible: boolean;
   petId: number;
   onClose: () => void;
+  mode?: 'create' | 'edit';
+  evento?: EventoPreventivoResponse;
 };
 
-export function AddReminderModal({ visible, petId, onClose }: AddReminderModalProps) {
+export function AddReminderModal({ visible, petId, onClose, mode = 'create', evento }: AddReminderModalProps) {
   const [tipo, setTipo] = useState<TipoEventoPreventivo>('VACINA');
   const [descricao, setDescricao] = useState('');
   const [dataPrevista, setDataPrevista] = useState(todayIsoDate());
   const [dateError, setDateError] = useState<string | null>(null);
-  const mutation = useCriarEventoPreventivo();
+  const criarMutation = useCriarEventoPreventivo();
+  const atualizarMutation = useAtualizarEventoPreventivo(petId);
+  const excluirMutation = useExcluirEventoPreventivo(petId);
+  const mutation = mode === 'create' ? criarMutation : atualizarMutation;
 
-  function resetForm() {
-    setTipo('VACINA');
-    setDescricao('');
-    setDataPrevista(todayIsoDate());
+  useEffect(() => {
+    if (!visible) return;
+    setTipo(evento?.tipo ?? 'VACINA');
+    setDescricao(evento?.descricao ?? '');
+    setDataPrevista(evento?.dataPrevista ?? todayIsoDate());
     setDateError(null);
-  }
+  }, [visible, evento]);
 
   function handleClose() {
-    resetForm();
     onClose();
   }
 
@@ -48,23 +55,55 @@ export function AddReminderModal({ visible, petId, onClose }: AddReminderModalPr
       setDateError('Data inválida. Use o formato AAAA-MM-DD.');
       return;
     }
-    if (dataPrevista < todayIsoDate()) {
+    if (mode === 'create' && dataPrevista < todayIsoDate()) {
       setDateError('A data precisa ser hoje ou no futuro.');
       return;
     }
     setDateError(null);
 
-    mutation.mutate(
-      { petId, tipo, descricao: descricao.trim(), dataPrevista },
+    if (mode === 'create') {
+      criarMutation.mutate(
+        { petId, tipo, descricao: descricao.trim(), dataPrevista },
+        {
+          onSuccess: () => onClose(),
+          onError: (error) => {
+            Alert.alert('Erro ao criar lembrete', error instanceof Error ? error.message : 'Tente novamente.');
+          },
+        }
+      );
+      return;
+    }
+
+    atualizarMutation.mutate(
+      { eventoId: evento!.id, payload: { tipo, descricao: descricao.trim(), dataPrevista } },
       {
-        onSuccess: () => {
-          resetForm();
-          onClose();
-        },
+        onSuccess: () => onClose(),
         onError: (error) => {
-          Alert.alert('Erro ao criar lembrete', error instanceof Error ? error.message : 'Tente novamente.');
+          Alert.alert('Erro ao salvar lembrete', error instanceof Error ? error.message : 'Tente novamente.');
         },
       }
+    );
+  }
+
+  function handleExcluir() {
+    if (!evento) return;
+    Alert.alert(
+      'Excluir lembrete?',
+      `"${evento.descricao}" será excluído. Essa ação não pode ser desfeita.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: () =>
+            excluirMutation.mutate(evento.id, {
+              onSuccess: () => onClose(),
+              onError: (error) => {
+                Alert.alert('Erro ao excluir', error instanceof Error ? error.message : 'Tente novamente.');
+              },
+            }),
+        },
+      ]
     );
   }
 
@@ -73,7 +112,7 @@ export function AddReminderModal({ visible, petId, onClose }: AddReminderModalPr
       <View style={styles.overlay}>
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text style={styles.title}>Adicionar lembrete</Text>
+            <Text style={styles.title}>{mode === 'create' ? 'Adicionar lembrete' : 'Editar lembrete'}</Text>
             <TouchableOpacity onPress={handleClose} hitSlop={8}>
               <MaterialCommunityIcons name="close" size={22} color={colors.textSecondary} />
             </TouchableOpacity>
@@ -104,11 +143,21 @@ export function AddReminderModal({ visible, petId, onClose }: AddReminderModalPr
           {dateError ? <Text style={styles.errorText}>{dateError}</Text> : null}
 
           <Button
-            label="Salvar lembrete"
+            label={mode === 'create' ? 'Salvar lembrete' : 'Salvar alterações'}
             onPress={handleSalvar}
             loading={mutation.isPending}
             style={styles.submitButton}
           />
+
+          {mode === 'edit' ? (
+            <Button
+              label="Excluir lembrete"
+              variant="danger"
+              onPress={handleExcluir}
+              loading={excluirMutation.isPending}
+              style={styles.deleteButton}
+            />
+          ) : null}
         </View>
       </View>
     </Modal>
@@ -130,4 +179,5 @@ const styles = StyleSheet.create({
   label: { ...typography.secondaryInfo, color: colors.textSecondary, marginBottom: spacing.xs },
   errorText: { ...typography.caption, color: colors.danger, marginTop: -spacing.sm, marginBottom: spacing.md },
   submitButton: { marginTop: spacing.sm },
+  deleteButton: { marginTop: spacing.sm, marginBottom: spacing.sm },
 });

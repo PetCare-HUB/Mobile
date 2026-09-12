@@ -268,7 +268,7 @@ export function PetProfileScreen() {
         onClose={() => setPetFormMode('closed')}
         mode={petFormMode === 'create' ? 'create' : 'edit'}
         pet={petFormMode === 'edit' ? selectedPet ?? undefined : undefined}
-        defaultClinicaId={pets[0]?.clinica.id ?? null}
+        defaultClinicaId={pets[0]?.clinica.id ?? tutorQuery.data?.clinica?.id ?? null}
       />
 
       {tutorQuery.data ? (
