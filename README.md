@@ -10,7 +10,7 @@ aInterface do tutor dentro da plataforma **PetCare Hub**: acompanha a saúde do 
 
 A proposta do Challenge CLYVO VET é transformar a jornada de saúde animal de um modelo episódico e reativo para uma experiência contínua, preventiva e integrada — conectando tutor, clínica veterinária, dispositivos IoT e inteligência artificial.
 
-O app é fechado: o tutor não se cadastra livremente. A clínica pré-cadastra o tutor e o pet; o tutor só ativa o próprio acesso informando CPF, e-mail e código de ativação.
+O app é fechado: o tutor não se cadastra livremente. A clínica pré-cadastra o tutor (nome, CPF, e-mail e telefone) e o pet; o tutor só ativa o próprio acesso confirmando nome, CPF e e-mail batendo com esse pré-cadastro e definindo sua senha.
 
 ---
 
@@ -33,7 +33,7 @@ O **PetCare Hub Mobile** permite que o responsável pelo pet:
 
 ### Autenticação
 - **Login** — e-mail e senha, sessão JWT persistida com `expo-secure-store`.
-- **Primeiro acesso** — validação de CPF, e-mail e código de ativação contra o pré-cadastro feito pela clínica.
+- **Primeiro acesso** — validação de nome, CPF e e-mail contra o pré-cadastro feito pela clínica (3 passos: dados → confirmação → criar senha).
 - **Criar senha** — conclui a ativação da conta.
 
 ### Início (Home)
@@ -128,9 +128,10 @@ petcare-hub-mobile/
 
 O app consome a API Java (Spring Boot) do PetCare Hub, hospedada em produção — sem dados mockados. Alguns pontos importantes:
 
-- Autenticação via JWT (`Authorization: Bearer`), token expira em 30 minutos; ao expirar, o app desloga automaticamente e avisa o tutor.
-- A API roda em plano gratuito (Render), então a primeira chamada depois de um tempo ocioso pode demorar — o client tem retry automático pra esse cenário.
-- Um TUTOR não tem acesso a `GET /clinicas` — por isso não existe seletor de clínica ao cadastrar um pet novo; a clínica usada é a do primeiro pet já vinculado ao tutor.
+- Autenticação via JWT (`Authorization: Bearer`), token expira em 30 minutos; ao expirar (ou já vencido ao restaurar a sessão salva), o app desloga automaticamente e avisa o tutor.
+- A API roda em plano gratuito (Render), então a primeira chamada depois de um tempo ocioso pode demorar — leituras (GET) têm retry automático pra esse cenário; criações (POST) não, pra não arriscar duplicar um cadastro.
+- Um TUTOR não tem acesso a `GET /clinicas` — por isso não existe seletor de clínica ao cadastrar um pet novo; a clínica usada é a do primeiro pet já vinculado ao tutor (um tutor sem nenhum pet ainda não consegue cadastrar o primeiro por aqui — precisa ser feito pela clínica).
+- O endereço da API está fixo em `src/services/api/client.ts` (constante `API_BASE_URL`). Pra apontar pra outro ambiente (local, staging), edite essa constante.
 
 ---
 
@@ -146,7 +147,7 @@ O app consome a API Java (Spring Boot) do PetCare Hub, hospedada em produção �
 
 ```bash
 git clone https://github.com/PetCare-HUB/Mobile.git
-cd Mobile/petcare-hub-mobile
+cd Mobile
 ```
 
 ### 2. Instalar dependências
@@ -154,6 +155,8 @@ cd Mobile/petcare-hub-mobile
 ```bash
 npm install
 ```
+
+> O repositório já inclui um `.npmrc` com `legacy-peer-deps=true` — necessário porque as dependências web do `expo-router` (usadas só quando o app roda no navegador) puxam uma versão de `react-dom` diferente da que o projeto fixa. Isso não afeta rodar no Expo Go ou emulador.
 
 ### 3. Rodar o projeto
 
@@ -168,7 +171,12 @@ npx expo start --android
 npx expo start --ios
 ```
 
-> Login exige uma conta previamente pré-cadastrada por uma clínica no backend. Peça credenciais de teste a quem administra o ambiente.
+### 4. Conta para testar
+
+O app não tem cadastro livre — o login (e o "Primeiro acesso") só funciona com um tutor que já exista no banco por trás da API (pré-cadastrado por uma clínica). Duas formas de conseguir uma conta de teste:
+
+- Peça uma conta de tutor já ativada (e-mail + senha) a quem administra o backend, ou
+- Peça os dados do pré-cadastro (nome, CPF, e-mail) de um tutor ainda não ativado, e use o fluxo "Primeiro acesso" no app pra definir a senha você mesmo.
 
 ---
 

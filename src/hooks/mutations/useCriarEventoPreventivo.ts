@@ -10,6 +10,7 @@ export function useCriarEventoPreventivo() {
 
   return useMutation({
     mutationFn: (payload: EventoPreventivoRequest) => criarEventoPreventivo(token as string, payload),
+    retry: false,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: petKeys.preventivePlan(data.petId) });
     },

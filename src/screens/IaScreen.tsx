@@ -5,13 +5,17 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import { SectionHeader } from '../components/SectionHeader';
 import { StatusCard } from '../components/StatusCard';
 import { colors, radius, spacing, typography } from '../theme';
+import { usePetContext } from '../contexts/pet/PetContext';
 
 export function IaScreen() {
+  const { selectedPet } = usePetContext();
+  const petName = selectedPet?.nome ?? 'seu pet';
+
   return (
     <ScreenContainer>
       <SectionHeader
         title="PetCare AI"
-        subtitle="Sua assistente de bem-estar interpreta os sinais do Rex e te ajuda com orientações preventivas."
+        subtitle={`Sua assistente de bem-estar interpreta os sinais do ${petName} e te ajuda com orientações preventivas.`}
         level="page"
       />
 
@@ -21,7 +25,7 @@ export function IaScreen() {
             <MaterialCommunityIcons name="robot-outline" size={22} color={colors.aiPurple} />
           </View>
           <Text style={styles.message}>
-            Olá! Em breve poderei analisar os dados do Rex e responder suas perguntas sobre
+            Olá! Em breve poderei analisar os dados do {petName} e responder suas perguntas sobre
             atividade, alimentação, ambiente e cuidados preventivos.
           </Text>
         </View>

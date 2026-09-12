@@ -11,6 +11,9 @@ export function useCriarPet() {
   return useMutation({
     mutationFn: (payload: Omit<PetRequest, 'tutorId'>) =>
       createPet(token as string, { ...payload, tutorId: tutorId as number }),
+    // POST não é idempotente: não deixa o TanStack Query re-chamar sozinho
+    // depois de uma falha (evitaria duplicar o cadastro do pet).
+    retry: false,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: petKeys.list(tutorId) });
     },

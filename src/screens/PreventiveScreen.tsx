@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { AddReminderModal } from '../components/AddReminderModal';
@@ -49,6 +49,7 @@ export function PreventiveScreen() {
 
   function handleTogglePress(evento: EventoPreventivoResponse) {
     if (evento.status === 'REALIZADO') return;
+    if (marcarRealizado.isPending) return;
 
     Alert.alert(
       'Marcar como realizado?',
@@ -136,23 +137,31 @@ export function PreventiveScreen() {
                   {filteredEventos.map((evento) => {
                     const color = statusColor(evento);
                     const done = evento.status === 'REALIZADO';
+                    const processando = marcarRealizado.isPending && marcarRealizado.variables === evento.id;
                     return (
                       <TouchableOpacity
                         key={evento.id}
                         style={[styles.row, done && styles.rowDone]}
                         onPress={() => handleTogglePress(evento)}
                         activeOpacity={done ? 1 : 0.8}
+                        disabled={marcarRealizado.isPending}
                       >
                         <View style={[styles.rowIcon, { backgroundColor: color }]}>
-                          <MaterialCommunityIcons
-                            name={done ? 'check' : TIPO_ICON[evento.tipo]}
-                            size={16}
-                            color={colors.surface}
-                          />
+                          {processando ? (
+                            <ActivityIndicator size="small" color={colors.surface} />
+                          ) : (
+                            <MaterialCommunityIcons
+                              name={done ? 'check' : TIPO_ICON[evento.tipo]}
+                              size={16}
+                              color={colors.surface}
+                            />
+                          )}
                         </View>
                         <View style={styles.rowText}>
                           <Text style={styles.rowTitle}>{evento.descricao}</Text>
-                          <Text style={[styles.rowDate, { color }]}>{statusLabel(evento)}</Text>
+                          <Text style={[styles.rowDate, { color }]}>
+                            {processando ? 'Salvando...' : statusLabel(evento)}
+                          </Text>
                         </View>
                       </TouchableOpacity>
                     );

@@ -1,4 +1,4 @@
-import { requestWithColdStartRetry } from '../api/client';
+import { apiRequest, requestWithColdStartRetry } from '../api/client';
 import type { EventoPreventivoRequest, EventoPreventivoResponse } from '../../types/api';
 
 export async function getPlanoPreventivo(token: string, petId: number): Promise<EventoPreventivoResponse[]> {
@@ -19,13 +19,13 @@ export async function criarEventoPreventivo(
   token: string,
   payload: EventoPreventivoRequest
 ): Promise<EventoPreventivoResponse> {
-  // O PUT/GET acima são seguros pra repetir automaticamente no cold start do Render;
-  // o POST aqui também usa o mesmo retry — no pior caso (timeout bem no meio do
-  // primeiro request) pode duplicar um lembrete, mas isso é raro e preferível a
-  // não tolerar o cold start, que é bem mais comum na prática.
-  return requestWithColdStartRetry<EventoPreventivoResponse>('/eventos-preventivos', {
+  // O PUT/GET acima são seguros pra repetir automaticamente no cold start do Render
+  // (idempotentes). POST não é — por isso aqui usamos uma única chamada com timeout
+  // maior (cobre o cold start) em vez do retry automático, pra não duplicar o lembrete.
+  return apiRequest<EventoPreventivoResponse>('/eventos-preventivos', {
     method: 'POST',
     token,
     body: JSON.stringify(payload),
+    timeoutMs: 45_000,
   });
 }

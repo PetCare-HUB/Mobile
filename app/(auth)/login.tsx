@@ -139,7 +139,7 @@ export default function LoginScreen() {
             <View style={styles.firstAccessText}>
               <Text style={styles.firstAccessTitle}>Primeiro acesso</Text>
               <Text style={styles.firstAccessDescription}>
-                Utilize seu CPF, e-mail e código de ativação fornecidos pela sua clínica.
+                Confirme seu nome, CPF e e-mail informados no pré-cadastro feito pela sua clínica.
               </Text>
             </View>
           </TouchableOpacity>

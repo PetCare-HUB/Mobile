@@ -87,8 +87,8 @@ export function PetFormModal({ visible, onClose, mode, pet, defaultClinicaId }: 
     setDateError(null);
 
     const pesoParsed = parsePeso(peso);
-    if (Number.isNaN(pesoParsed)) {
-      setPesoError('Peso inválido.');
+    if (pesoParsed == null || Number.isNaN(pesoParsed)) {
+      setPesoError(pesoParsed == null ? 'Informe o peso do pet.' : 'Peso inválido.');
       return;
     }
     setPesoError(null);
@@ -207,6 +207,7 @@ export function PetFormModal({ visible, onClose, mode, pet, defaultClinicaId }: 
                 }}
                 keyboardType="decimal-pad"
                 icon="weight-kilogram"
+                required
               />
               {pesoError ? <Text style={styles.errorText}>{pesoError}</Text> : null}
 

@@ -2,10 +2,19 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import { Alert } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import * as authService from '../../services/auth/authService';
-import { setUnauthorizedHandler } from '../../services/api/client';
+import { ApiError, setUnauthorizedHandler } from '../../services/api/client';
+import { queryClient } from '../../services/api/queryClient';
 import type { LoginResponse } from '../../services/auth/authService';
 
 const STORAGE_KEY = 'petcarehub_auth';
+
+// Este app é exclusivo para tutores — uma clínica também tem conta na mesma
+// API, mas o app não sabe renderizar nada pra esse perfil.
+function isSessaoValidaParaMobile(session: LoginResponse): boolean {
+  if (session.role !== 'TUTOR') return false;
+  const expiraEm = new Date(session.expiraEm).getTime();
+  return Number.isFinite(expiraEm) && expiraEm > Date.now();
+}
 
 type AuthState = {
   token: string | null;
@@ -50,15 +59,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const raw = await SecureStore.getItemAsync(STORAGE_KEY);
         if (raw) {
           const session: LoginResponse = JSON.parse(raw);
-          setState({
-            token: session.token,
-            role: session.role,
-            tutorId: session.tutorId ?? null,
-            clinicaId: session.clinicaId ?? null,
-            isLoading: false,
-            isAuthenticated: true,
-          });
-          return;
+          if (isSessaoValidaParaMobile(session)) {
+            setState({
+              token: session.token,
+              role: session.role,
+              tutorId: session.tutorId ?? null,
+              clinicaId: session.clinicaId ?? null,
+              isLoading: false,
+              isAuthenticated: true,
+            });
+            return;
+          }
+          // sessão expirada ou de um perfil que o app não suporta (ex: CLINICA)
+          await SecureStore.deleteItemAsync(STORAGE_KEY);
         }
       } catch {
         // sessão corrompida ou ausente — segue como não autenticado
@@ -94,6 +107,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function login(email: string, password: string, onSlowConnection?: () => void) {
     const session = await authService.login(email, password, onSlowConnection);
+    if (session.role !== 'TUTOR') {
+      throw new ApiError(403, 'Este aplicativo é exclusivo para tutores. Clínicas devem usar o painel próprio.');
+    }
     await persistSession(session);
     applySession(session);
   }
@@ -106,12 +122,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSlowConnection?: () => void
   ) {
     const session = await authService.ativarConta(nome, cpf, email, senha, onSlowConnection);
+    if (session.role !== 'TUTOR') {
+      throw new ApiError(403, 'Este aplicativo é exclusivo para tutores.');
+    }
     await persistSession(session);
     applySession(session);
   }
 
   async function logout() {
     await SecureStore.deleteItemAsync(STORAGE_KEY);
+    queryClient.clear();
     setState({
       token: null,
       role: null,
