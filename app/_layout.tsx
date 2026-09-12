@@ -16,10 +16,15 @@ function RootNavigation() {
   const segments = useSegments();
   const router = useRouter();
 
+  const inAuthGroup = segments[0] === '(auth)';
+  // true enquanto a rota atual não bate com o estado de sessão - ainda não
+  // redirecionou (o efeito abaixo faz isso). Usado só pra decidir o que
+  // renderizar agora, nunca pra navegar durante o próprio render (isso foi
+  // o que causou um loop de atualização com <Redirect> antes).
+  const descompassado = !isLoading && ((!isAuthenticated && !inAuthGroup) || (isAuthenticated && inAuthGroup));
+
   useEffect(() => {
     if (isLoading) return;
-
-    const inAuthGroup = segments[0] === '(auth)';
 
     if (!isAuthenticated && !inAuthGroup) {
       router.replace('/(auth)/login');
@@ -28,7 +33,10 @@ function RootNavigation() {
     }
   }, [isAuthenticated, isLoading, segments]);
 
-  if (isLoading) {
+  if (isLoading || descompassado) {
+    // Enquanto está descompassado, a tela protegida (ou a de login, se já
+    // autenticado) nem chega a montar - fica essa tela em branco até o
+    // efeito acima trocar de rota.
     return <View style={{ flex: 1, backgroundColor: colors.background }} />;
   }
 

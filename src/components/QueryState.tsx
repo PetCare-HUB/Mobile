@@ -13,6 +13,7 @@ type QueryStateProps<T> = {
   onRetry?: () => void;
   emptyTitle?: string;
   emptyDescription?: string;
+  emptyAction?: ReactNode;
   errorTitle?: string;
   children: (data: T) => ReactNode;
 };
@@ -26,6 +27,7 @@ export function QueryState<T>({
   onRetry,
   emptyTitle = 'Nada por aqui',
   emptyDescription,
+  emptyAction,
   errorTitle = 'Não foi possível carregar',
   children,
 }: QueryStateProps<T>) {
@@ -48,7 +50,12 @@ export function QueryState<T>({
   }
 
   if (data == null || (isEmpty && isEmpty(data))) {
-    return <EmptyState title={emptyTitle} description={emptyDescription} />;
+    return (
+      <View>
+        <EmptyState title={emptyTitle} description={emptyDescription} />
+        {emptyAction}
+      </View>
+    );
   }
 
   return <>{children(data)}</>;

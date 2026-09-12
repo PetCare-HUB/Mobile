@@ -49,7 +49,8 @@ O **PetCare Hub Mobile** permite que o responsável pelo pet:
 
 ### Preventivo
 - Calendário de vacinas, check-ups, vermífugo e medicamentos.
-- Marcar item como realizado (ação definitiva, sem desfazer) e adicionar novo lembrete.
+- CRUD completo do lembrete: criar, marcar como realizado (ação definitiva, sem desfazer), **editar** (tipo/descrição/data — ícone de lápis nos itens pendentes) e **excluir**. Edição e exclusão são bloqueadas pelo backend para um lembrete já realizado.
+- A data prevista precisa ser hoje ou no futuro tanto para criar quanto para editar (regra do backend) — a tela avisa isso antes de tentar salvar.
 - Streak de adesão calculado a partir de eventos concluídos reais.
 
 ### Alertas
@@ -62,7 +63,7 @@ O **PetCare Hub Mobile** permite que o responsável pelo pet:
 - Dados do pet (espécie, raça, data de nascimento, peso, sexo, condições crônicas) com edição real.
 - Cadastro e exclusão de pet.
 - Dados do tutor (nome, e-mail, telefone) com edição real; CPF fica somente leitura.
-- Clínica responsável pelo pet.
+- Clínica responsável pelo pet. Se o tutor ainda não tiver nenhum pet, a clínica vem do próprio pré-cadastro (`GET /tutor/me`), então o cadastro do primeiro pet nunca fica bloqueado por falta de clínica.
 - Status dos dispositivos vinculados (coleira, comedouro, sensor de ambiente).
 - Histórico recente (alertas e eventos preventivos concluídos).
 - Preferências de notificação (local, `AsyncStorage`).
@@ -173,10 +174,18 @@ npx expo start --ios
 
 ### 4. Conta para testar
 
-O app não tem cadastro livre — o login (e o "Primeiro acesso") só funciona com um tutor que já exista no banco por trás da API (pré-cadastrado por uma clínica). Duas formas de conseguir uma conta de teste:
+O app não tem cadastro livre — o login (e o "Primeiro acesso") só funciona com um tutor que já exista no banco por trás da API (pré-cadastrado por uma clínica).
 
-- Peça uma conta de tutor já ativada (e-mail + senha) a quem administra o backend, ou
-- Peça os dados do pré-cadastro (nome, CPF, e-mail) de um tutor ainda não ativado, e use o fluxo "Primeiro acesso" no app pra definir a senha você mesmo.
+**Procedimento reproduzível, sem depender de pedir conta a ninguém** (backend Java, ver seu README):
+
+1. A API Java, ao subir contra um banco Oracle **vazio**, insere sozinha uma clínica de exemplo:
+   `contato@clinicavidapet.test` / `Senha123` (ver `DataLoader`, ligado por `app.seed.enabled=true`).
+2. Abra o Swagger da API (`/swagger-ui.html`) e chame `POST /auth/login` com esse e-mail/senha pra pegar o token da clínica.
+3. Com esse token, chame `POST /tutor` (Swagger tem botão "Authorize") informando nome, CPF, e-mail e telefone de um tutor de teste qualquer.
+4. No app, use "Primeiro acesso" com esse mesmo nome/CPF/e-mail pra ativar a conta e definir a senha.
+5. Pronto — login normal a partir daí, com a clínica do pré-cadastro já resolvida automaticamente.
+
+> Isso funciona de ponta a ponta contra um Oracle novo (ambiente do próprio avaliador). Se estiver testando contra o ambiente compartilhado do grupo (Render), que já tem clínicas cadastradas, o seed automático não roda (só age em banco vazio) — nesse caso, peça uma conta de tutor já ativada ou os dados de um pré-cadastro a quem administra esse ambiente específico.
 
 ---
 

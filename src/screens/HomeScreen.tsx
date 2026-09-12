@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+import { Button } from '../components/Button';
 import { HealthScore } from '../components/HealthScore';
 import { PetAvatar } from '../components/PetAvatar';
 import { PetFormModal } from '../components/PetFormModal';
@@ -142,7 +143,10 @@ export function HomeScreen() {
           isEmpty={(p) => p.length === 0}
           onRetry={refetchPets}
           emptyTitle="Nenhum pet cadastrado"
-          emptyDescription="Assim que sua clínica vincular um pet à sua conta, ele aparece aqui."
+          emptyDescription="Cadastre o primeiro pet ou peça pra sua clínica vincular um à sua conta."
+          emptyAction={
+            <Button label="Adicionar pet" onPress={() => setAddPetOpen(true)} style={styles.emptyAddButton} />
+          }
         >
           {() => (
             <>
@@ -339,4 +343,5 @@ const styles = StyleSheet.create({
   actionTitle: { ...typography.subtitle, color: colors.textPrimary },
   actionMetaRow: { flexDirection: 'row', marginTop: spacing.xs / 2 },
   actionDate: { ...typography.secondaryInfo, color: colors.bluePrimary, fontWeight: '600' },
+  emptyAddButton: { marginTop: spacing.md, alignSelf: 'stretch' },
 });

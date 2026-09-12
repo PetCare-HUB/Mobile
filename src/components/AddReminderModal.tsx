@@ -55,8 +55,11 @@ export function AddReminderModal({ visible, petId, onClose, mode = 'create', eve
       setDateError('Data inválida. Use o formato AAAA-MM-DD.');
       return;
     }
-    if (mode === 'create' && dataPrevista < todayIsoDate()) {
-      setDateError('A data precisa ser hoje ou no futuro.');
+    if (dataPrevista < todayIsoDate()) {
+      // O Java exige data prevista hoje ou no futuro tanto ao criar quanto ao
+      // editar (mesma regra @FutureOrPresent nos dois DTOs) — um lembrete
+      // atrasado precisa ganhar uma nova data antes de poder ser salvo.
+      setDateError('A data precisa ser hoje ou no futuro — atualize antes de salvar.');
       return;
     }
     setDateError(null);
@@ -126,6 +129,7 @@ export function AddReminderModal({ visible, petId, onClose, mode = 'create', eve
             placeholder="Ex: Reforço da vacina V10"
             value={descricao}
             onChangeText={setDescricao}
+            maxLength={300}
             required
           />
 
@@ -140,6 +144,11 @@ export function AddReminderModal({ visible, petId, onClose, mode = 'create', eve
             keyboardType="numeric"
             required
           />
+          {mode === 'edit' ? (
+            <Text style={styles.hintText}>
+              A data precisa ser hoje ou no futuro — se o lembrete estiver atrasado, atualize a data pra poder salvar.
+            </Text>
+          ) : null}
           {dateError ? <Text style={styles.errorText}>{dateError}</Text> : null}
 
           <Button
@@ -178,6 +187,7 @@ const styles = StyleSheet.create({
   title: { ...typography.cardTitle, color: colors.textPrimary },
   label: { ...typography.secondaryInfo, color: colors.textSecondary, marginBottom: spacing.xs },
   errorText: { ...typography.caption, color: colors.danger, marginTop: -spacing.sm, marginBottom: spacing.md },
+  hintText: { ...typography.caption, color: colors.textSecondary, marginTop: -spacing.sm, marginBottom: spacing.md },
   submitButton: { marginTop: spacing.sm },
   deleteButton: { marginTop: spacing.sm, marginBottom: spacing.sm },
 });

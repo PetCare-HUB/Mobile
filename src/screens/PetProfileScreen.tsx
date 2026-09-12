@@ -112,7 +112,10 @@ export function PetProfileScreen() {
         isEmpty={(p) => p.length === 0}
         onRetry={refetchPets}
         emptyTitle="Nenhum pet cadastrado"
-        emptyDescription="Assim que sua clínica vincular um pet à sua conta, ele aparece aqui."
+        emptyDescription="Cadastre o primeiro pet ou peça pra sua clínica vincular um à sua conta."
+        emptyAction={
+          <Button label="Adicionar pet" onPress={() => setPetFormMode('create')} style={styles.emptyAddButton} />
+        }
       >
         {() => (
           <>
@@ -313,6 +316,7 @@ const styles = StyleSheet.create({
   petName: { ...typography.pageTitle, color: colors.textPrimary },
   petSubtitle: { ...typography.body, color: colors.textSecondary, marginTop: spacing.xs / 2 },
   editButton: { alignSelf: 'flex-start', paddingHorizontal: spacing.xl, marginBottom: spacing.lg },
+  emptyAddButton: { marginTop: spacing.md, alignSelf: 'stretch' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm + 2, marginBottom: spacing.lg },
   infoTile: {
     width: '47%',

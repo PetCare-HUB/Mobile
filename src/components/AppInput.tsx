@@ -13,6 +13,7 @@ type AppInputProps = {
   secureTextEntry?: boolean;
   icon?: keyof typeof MaterialCommunityIcons.glyphMap;
   required?: boolean;
+  maxLength?: number;
 };
 
 export function AppInput({
@@ -24,6 +25,7 @@ export function AppInput({
   secureTextEntry,
   icon,
   required,
+  maxLength,
 }: AppInputProps) {
   const [hidden, setHidden] = useState(secureTextEntry);
 
@@ -40,6 +42,7 @@ export function AppInput({
           placeholderTextColor={colors.textSecondary}
           keyboardType={keyboardType}
           secureTextEntry={hidden}
+          maxLength={maxLength}
         />
         {secureTextEntry ? (
           <TouchableOpacity onPress={() => setHidden((v) => !v)} hitSlop={8}>
