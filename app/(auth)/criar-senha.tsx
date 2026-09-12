@@ -10,18 +10,17 @@ import { SectionHeader } from '../../src/components/SectionHeader';
 import { StatusCard } from '../../src/components/StatusCard';
 import { StepIndicator } from '../../src/components/StepIndicator';
 import { colors, radius, spacing, typography } from '../../src/theme';
-import { useAuth } from '../../src/contexts/auth/AuthContext';
+import { useAtivarConta } from '../../src/hooks/mutations/useAtivarConta';
 
 export default function CriarSenhaScreen() {
   const router = useRouter();
-  const { ativarConta } = useAuth();
+  const ativarContaMutation = useAtivarConta();
   const { nome, cpf, email } = useLocalSearchParams<{ nome: string; cpf: string; email: string }>();
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
-  const [loading, setLoading] = useState(false);
   const [slowConnection, setSlowConnection] = useState(false);
 
-  async function handleCriarConta() {
+  function handleCriarConta() {
     if (senha.length < 8) {
       Alert.alert('Atenção', 'A senha precisa ter no mínimo 8 caracteres.');
       return;
@@ -31,18 +30,20 @@ export default function CriarSenhaScreen() {
       return;
     }
 
-    setLoading(true);
     setSlowConnection(false);
-    try {
-      await ativarConta(nome, cpf, email, senha, () => setSlowConnection(true));
-      Alert.alert('Conta ativada!', `Bem-vindo(a) ao PetCare Hub, ${nome.split(' ')[0]}.`);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Não foi possível ativar a conta.';
-      Alert.alert('Erro ao ativar conta', message);
-    } finally {
-      setLoading(false);
-      setSlowConnection(false);
-    }
+    ativarContaMutation.mutate(
+      { nome, cpf, email, senha, onSlowConnection: () => setSlowConnection(true) },
+      {
+        onSuccess: () => {
+          Alert.alert('Conta ativada!', `Bem-vindo(a) ao PetCare Hub, ${nome.split(' ')[0]}.`);
+        },
+        onError: (error) => {
+          const message = error instanceof Error ? error.message : 'Não foi possível ativar a conta.';
+          Alert.alert('Erro ao ativar conta', message);
+        },
+        onSettled: () => setSlowConnection(false),
+      }
+    );
   }
 
   return (
@@ -70,8 +71,14 @@ export default function CriarSenhaScreen() {
         </Text>
       )}
 
-      <Button label="Ativar conta" onPress={handleCriarConta} loading={loading} style={styles.button} />
-      <Button label="Voltar" variant="secondary" onPress={() => router.back()} disabled={loading} style={styles.backButton} />
+      <Button label="Ativar conta" onPress={handleCriarConta} loading={ativarContaMutation.isPending} style={styles.button} />
+      <Button
+        label="Voltar"
+        variant="secondary"
+        onPress={() => router.back()}
+        disabled={ativarContaMutation.isPending}
+        style={styles.backButton}
+      />
     </ScreenContainer>
   );
 }

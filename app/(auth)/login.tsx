@@ -8,7 +8,7 @@ import { useRouter } from 'expo-router';
 import { AppInput } from '../../src/components/AppInput';
 import { Button } from '../../src/components/Button';
 import { colors, radius, spacing, typography } from '../../src/theme';
-import { useAuth } from '../../src/contexts/auth/AuthContext';
+import { useLogin } from '../../src/hooks/mutations/useLogin';
 
 const PAW_DECORATIONS = [
   { top: 18, left: '8%', size: 34, opacity: 0.16, rotate: '-18deg' },
@@ -19,28 +19,27 @@ const PAW_DECORATIONS = [
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login } = useAuth();
+  const loginMutation = useLogin();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [slowConnection, setSlowConnection] = useState(false);
 
-  async function handleLogin() {
+  function handleLogin() {
     if (!email || !password) {
       Alert.alert('Atenção', 'Preencha e-mail e senha.');
       return;
     }
-    setLoading(true);
     setSlowConnection(false);
-    try {
-      await login(email, password, () => setSlowConnection(true));
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Não foi possível entrar.';
-      Alert.alert('Erro ao entrar', message);
-    } finally {
-      setLoading(false);
-      setSlowConnection(false);
-    }
+    loginMutation.mutate(
+      { email, password, onSlowConnection: () => setSlowConnection(true) },
+      {
+        onError: (error) => {
+          const message = error instanceof Error ? error.message : 'Não foi possível entrar.';
+          Alert.alert('Erro ao entrar', message);
+        },
+        onSettled: () => setSlowConnection(false),
+      }
+    );
   }
 
   return (
@@ -121,7 +120,7 @@ export default function LoginScreen() {
             </Text>
           )}
 
-          <Button label="Entrar" onPress={handleLogin} loading={loading} style={styles.button} />
+          <Button label="Entrar" onPress={handleLogin} loading={loginMutation.isPending} style={styles.button} />
 
           <View style={styles.dividerRow}>
             <View style={styles.dividerLine} />
