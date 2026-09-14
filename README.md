@@ -187,6 +187,10 @@ O app não tem cadastro livre — o login (e o "Primeiro acesso") só funciona c
 
 > Isso funciona de ponta a ponta contra um Oracle novo (ambiente do próprio avaliador). Se estiver testando contra o ambiente compartilhado do grupo (Render), que já tem clínicas cadastradas, o seed automático não roda (só age em banco vazio) — nesse caso, peça uma conta de tutor já ativada ou os dados de um pré-cadastro a quem administra esse ambiente específico.
 
+## 📺 Demonstração em Vídeo
+
+Vídeo de apresentação do app, publicado no YouTube: [assista aqui](https://youtu.be/97hjtDnuxmY?si=wVhmzgkwjcXPI5as)
+
 ---
 
 ## 🔮 Evoluções futuras
