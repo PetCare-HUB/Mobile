@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 import { Button } from '../components/Button';
 import { DeviceCard } from '../components/DeviceCard';
@@ -39,6 +40,7 @@ type HistoricoItem = { id: string; rawDate: string; dateLabel: string; title: st
 
 export function PetProfileScreen() {
   const { logout } = useAuth();
+  const router = useRouter();
   const {
     pets,
     selectedPet,
@@ -255,6 +257,16 @@ export function PetProfileScreen() {
         ))}
       </StatusCard>
 
+      <TouchableOpacity
+        style={styles.sobreLinha}
+        onPress={() => router.push('/sobre')}
+        activeOpacity={0.8}
+      >
+        <MaterialCommunityIcons name="information-outline" size={20} color={colors.textSecondary} />
+        <Text style={styles.sobreTexto}>Sobre o app</Text>
+        <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSecondary} />
+      </TouchableOpacity>
+
       <Button label="Sair da conta" variant="secondary" onPress={logout} style={styles.logoutButton} />
 
       <PetSwitcherModal
@@ -369,6 +381,19 @@ const styles = StyleSheet.create({
   timelineDate: { ...typography.secondaryInfo, color: colors.textSecondary, width: 56 },
   timelineTitle: { ...typography.body, color: colors.textPrimary, flex: 1 },
   prefsCard: { marginTop: spacing.lg, marginBottom: spacing.lg },
+  sobreLinha: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.cardSm,
+    borderWidth: 1,
+    borderColor: colors.borderGray,
+  },
+  sobreTexto: { flex: 1, ...typography.body, color: colors.textPrimary },
   logoutButton: { marginBottom: spacing.lg },
   prefsTitle: { ...typography.cardTitle, color: colors.textPrimary, marginBottom: spacing.md },
   prefRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
