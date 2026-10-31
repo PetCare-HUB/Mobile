@@ -25,7 +25,9 @@ O **PetCare Hub Mobile** permite que o responsável pelo pet:
 - gerencie um **calendário preventivo** (vacinas, check-ups, vermífugo, medicamentos), com streak de adesão calculado a partir de eventos reais;
 - tenha múltiplos pets vinculados à conta e alterne entre eles;
 - cadastre, edite e exclua os próprios pets, e edite os próprios dados de contato;
-- configure preferências de notificação (local, sem endpoint correspondente no backend).
+- receba notificação no aparelho quando o backend abrir um alerta grave para algum dos seus pets;
+- pergunte à **PetCare AI** sobre os dados do pet;
+- confira em **Sobre o app** qual commit gerou a versão instalada.
 
 ---
 
@@ -57,7 +59,9 @@ O **PetCare Hub Mobile** permite que o responsável pelo pet:
 - Lista de alertas ativos do pet, com filtro por gravidade e tela de detalhe.
 
 ### PetCare AI
-- Tela reservada para o assistente de orientação preventiva — ainda não implementada (prioridade P2, depois da integração completa do Mobile).
+- Campo de pergunta com envio real, estados de carregamento e erro, e as fontes que embasaram a resposta.
+- Consome o serviço de IA apontado por `EXPO_PUBLIC_IA_API_URL`. Enquanto a variável não estiver definida, a tela informa que a assistente não está conectada em vez de simular uma resposta.
+- O contrato que o app espera está em [`docs/contrato-ia.md`](docs/contrato-ia.md).
 
 ### Perfil
 - Dados do pet (espécie, raça, data de nascimento, peso, sexo, condições crônicas) com edição real.
@@ -66,8 +70,14 @@ O **PetCare Hub Mobile** permite que o responsável pelo pet:
 - Clínica responsável pelo pet. Se o tutor ainda não tiver nenhum pet, a clínica vem do próprio pré-cadastro (`GET /tutor/me`), então o cadastro do primeiro pet nunca fica bloqueado por falta de clínica.
 - Status dos dispositivos vinculados (coleira, comedouro, sensor de ambiente).
 - Histórico recente (alertas e eventos preventivos concluídos).
-- Preferências de notificação (local, `AsyncStorage`).
+- Preferências de notificação (`AsyncStorage`) — governam os avisos disparados pelos alertas do backend.
+- Acesso à tela **Sobre o app**.
 - Logout.
+
+### Sobre o app
+- Versão e **hash do commit que gerou o build**, resolvidos em tempo de build pelo `app.config.js`.
+- Avisa quando o build saiu de uma cópia com alterações não commitadas — nesse caso o código em execução não corresponde ao commit exibido.
+- Animações de entrada e pulso, que respeitam a preferência de movimento reduzido do sistema.
 
 ---
 
@@ -78,6 +88,7 @@ O app usa **Expo Router** (roteamento por arquivos):
 - Grupo `(auth)` — pilha de login/ativação, exibida quando não há sessão.
 - Grupo `(tabs)` — bottom tabs (Início, Saúde, Preventivo, IA, Perfil), exibida quando autenticado.
 - `alertas/` — pilha própria (lista + detalhe) fora das tabs.
+- `sobre/` — pilha própria com a tela **Sobre o app**.
 
 O layout raiz (`app/_layout.tsx`) decide qual grupo mostrar com base no estado de autenticação, redirecionando automaticamente.
 
@@ -85,12 +96,15 @@ O layout raiz (`app/_layout.tsx`) decide qual grupo mostrar com base no estado d
 
 ## 🛠️ Tecnologias utilizadas
 
-- React Native 0.83 + Expo SDK 55
+- React Native 0.86 + Expo SDK 57
 - TypeScript (modo `strict`)
 - Expo Router (navegação por arquivos)
 - TanStack Query (cache, loading/error/empty states, invalidação após mutações)
 - `expo-secure-store` (sessão JWT)
 - `expo-linear-gradient`, `react-native-svg` (telas de login e anel de score)
+- `expo-notifications` (notificação local disparada por alerta do backend)
+- `react-native-reanimated` (animações da tela Sobre o app)
+- `expo-constants` (lê o commit do build injetado pelo `app.config.js`)
 
 ---
 
@@ -102,7 +116,8 @@ petcare-hub-mobile/
 ├── app/                        # rotas (Expo Router)
 │   ├── (auth)/                 # login, primeiro acesso, criar senha
 │   ├── (tabs)/                 # início, saúde, preventivo, ia, perfil
-│   └── alertas/                # lista + detalhe
+│   ├── alertas/                # lista + detalhe
+│   └── sobre/                  # versão e commit do build
 │
 ├── src/
 │   ├── components/             # componentes de UI reutilizáveis
@@ -118,7 +133,10 @@ petcare-hub-mobile/
 │   ├── types/                    # tipos das respostas/requisições da API
 │   └── utils/                    # mapeamento de dado da API pra UI
 │
-├── app.json
+├── docs/contrato-ia.md         # contrato do endpoint da PetCare AI
+├── app.json                    # configuração estática
+├── app.config.js               # injeta o commit do build
+├── .env.example                # variáveis de ambiente
 ├── package.json
 └── README.md
 ```
@@ -132,7 +150,31 @@ O app consome a API Java (Spring Boot) do PetCare Hub, hospedada em produção �
 - Autenticação via JWT (`Authorization: Bearer`), token expira em 30 minutos; ao expirar (ou já vencido ao restaurar a sessão salva), o app desloga automaticamente e avisa o tutor.
 - A API roda em plano gratuito (Render), então a primeira chamada depois de um tempo ocioso pode demorar — leituras (GET) têm retry automático pra esse cenário; criações (POST) não, pra não arriscar duplicar um cadastro.
 - Um TUTOR não tem acesso a `GET /clinicas` — por isso não existe seletor de clínica ao cadastrar um pet novo; a clínica usada é a do primeiro pet já vinculado ao tutor (um tutor sem nenhum pet ainda não consegue cadastrar o primeiro por aqui — precisa ser feito pela clínica).
-- O endereço da API está fixo em `src/services/api/client.ts` (constante `API_BASE_URL`). Pra apontar pra outro ambiente (local, staging), edite essa constante.
+- O endereço da API vem de `EXPO_PUBLIC_API_URL` (ver `.env.example`), com a URL de produção como fallback. O Expo injeta variáveis com esse prefixo **no momento do build**: trocar o `.env` depois de gerar um APK não altera o binário, é preciso buildar de novo.
+
+---
+
+## 🔔 Notificações
+
+O app avisa o tutor quando o backend abre um alerta de nível `ALTO` ou `CRITICO` para
+algum pet dele. O caso principal é o `SCORE_CRITICO`, que o `ScoreSaudeService` da API
+Java cria sozinho quando o score do pet cai abaixo de 50.
+
+Não existe caminho no app para forçar uma notificação: o disparo é sempre consequência
+de um alerta que já existe em `/pets/{id}/alertas/ativos`. O hook reconsulta esse
+endpoint a cada minuto reaproveitando a mesma `queryKey` das telas, então o cache é
+compartilhado e não há requisição duplicada.
+
+Dois cuidados que o uso real exige:
+
+- **Primeira execução:** os alertas já abertos são gravados como linha de base e não
+  notificam. Sem isso, instalar o app com cinco alertas em aberto dispararia cinco
+  avisos de uma vez.
+- **Repetição:** os ids já avisados ficam no `AsyncStorage`, porque o endpoint devolve
+  os mesmos alertas enquanto ninguém os resolve.
+
+Um toque no aviso abre o alerta que o originou. O aviso é **local** — depende do app
+estar em execução; notificação com o app fechado exigiria token de push e servidor.
 
 ---
 
@@ -159,7 +201,24 @@ npm install
 
 > O repositório já inclui um `.npmrc` com `legacy-peer-deps=true` — necessário porque as dependências web do `expo-router` (usadas só quando o app roda no navegador) puxam uma versão de `react-dom` diferente da que o projeto fixa. Isso não afeta rodar no Expo Go ou emulador.
 
-### 3. Rodar o projeto
+### 3. Configurar o ambiente
+
+```bash
+cp .env.example .env
+```
+
+O app funciona sem esse passo — `EXPO_PUBLIC_API_URL` tem a URL de produção como
+fallback. O `.env` serve para apontar para outro ambiente e para ligar a PetCare AI:
+
+| Variável | Para que serve |
+|---|---|
+| `EXPO_PUBLIC_API_URL` | API Java. Vazia = produção (Render) |
+| `EXPO_PUBLIC_IA_API_URL` | Serviço da PetCare AI. Vazia = aba informa que não está conectada |
+
+> O prefixo `EXPO_PUBLIC_` é obrigatório, e o valor é injetado **no build** — por isso
+> ele fica visível no bundle. Não coloque segredo aí.
+
+### 4. Rodar o projeto
 
 ```bash
 # Via QR Code (Expo Go)
@@ -172,7 +231,7 @@ npx expo start --android
 npx expo start --ios
 ```
 
-### 4. Conta para testar
+### 5. Conta para testar
 
 O app não tem cadastro livre — o login (e o "Primeiro acesso") só funciona com um tutor que já exista no banco por trás da API (pré-cadastrado por uma clínica).
 
@@ -195,11 +254,10 @@ Vídeo de apresentação do app, publicado no YouTube: [assista aqui](https://yo
 
 ## 🔮 Evoluções futuras
 
-- PetCare AI contextual (orientação preventiva baseada nos dados reais do pet)
 - `/auth/logout` e `/auth/refresh` no backend (hoje a sessão só expira, sem renovação)
-- Notificações push reais ligadas a alertas do backend
+- Notificação com o app fechado (hoje o aviso é local e depende do app estar em execução)
 - Ponte MQTT → Java para leituras de IoT em tempo real
-- Publicação nas lojas, tela de versão/hash, testes automatizados
+- Publicação nas lojas e testes automatizados
 
 ---
 
