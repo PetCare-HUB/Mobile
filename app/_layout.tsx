@@ -9,12 +9,18 @@ import { View } from 'react-native';
 import { queryClient } from '../src/services/api/queryClient';
 import { AuthProvider, useAuth } from '../src/contexts/auth/AuthContext';
 import { PetProvider } from '../src/contexts/pet/PetContext';
+import { useAlertNotifications } from '../src/hooks/useAlertNotifications';
 import { colors } from '../src/theme';
 
 function RootNavigation() {
   const { isAuthenticated, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+
+  // Fica aqui, e nao numa tela, porque a notificacao precisa valer para o
+  // app inteiro: o alerta pode nascer no backend enquanto o usuario esta em
+  // qualquer aba. Precisa estar dentro de AuthProvider e PetProvider.
+  useAlertNotifications();
 
   const inAuthGroup = segments[0] === '(auth)';
   // true enquanto a rota atual não bate com o estado de sessão - ainda não
