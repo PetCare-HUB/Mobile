@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 
 import { useAuth } from '../contexts/auth/AuthContext';
 import { usePetContext } from '../contexts/pet/PetContext';
 import { getPetAlerts } from '../services/pets/petsService';
 import {
+  aoTocarNotificacao,
   garantirPermissao,
   notificarAlerta,
   prepararCanal,
@@ -76,14 +76,9 @@ export function useAlertNotifications() {
 
   // Um toque na notificacao abre o alerta que a originou.
   useEffect(() => {
-    const inscricao = Notifications.addNotificationResponseReceivedListener((resposta) => {
-      const alertaId = resposta.notification.request.content.data?.alertaId;
-      if (typeof alertaId === 'number') {
-        router.push(`/alertas/${alertaId}`);
-      }
+    return aoTocarNotificacao((alertaId) => {
+      router.push(`/alertas/${alertaId}`);
     });
-
-    return () => inscricao.remove();
   }, [router]);
 
   // Mesma queryKey que a usePetAlerts das telas: o cache e compartilhado, nao

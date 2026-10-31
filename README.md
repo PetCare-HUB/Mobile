@@ -166,8 +166,12 @@ de um alerta que já existe em `/pets/{id}/alertas/ativos`. O hook reconsulta es
 endpoint a cada minuto reaproveitando a mesma `queryKey` das telas, então o cache é
 compartilhado e não há requisição duplicada.
 
-Dois cuidados que o uso real exige:
+Três cuidados que o uso real exige:
 
+- **Expo Go não serve para testar isso:** o módulo nativo do `expo-notifications` não
+  existe no Expo Go desde o SDK 53. O app detecta a ausência e segue sem notificar, com
+  o resto funcionando normalmente — mas para ver o aviso é preciso um dev build
+  (`npx expo run:android`) ou o APK.
 - **Primeira execução:** os alertas já abertos são gravados como linha de base e não
   notificam. Sem isso, instalar o app com cinco alertas em aberto dispararia cinco
   avisos de uma vez.
