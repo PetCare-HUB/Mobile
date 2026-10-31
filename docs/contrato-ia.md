@@ -1,13 +1,13 @@
-# Contrato do endpoint da PetCare AI
+# Integração com a PetCare AI
 
-O app do tutor já chama este endpoint. Falta a implementação no backend.
-Quem for construí-la só precisa respeitar o formato abaixo — o lado do app
-não muda, e ligar a tela é definir `EXPO_PUBLIC_IA_API_URL` no `.env`.
+A IA roda dentro da própria API Java (Spring AI + Google Gemini, com RAG sobre
+uma base veterinária em markdown). Não é um serviço separado: usa a mesma
+`EXPO_PUBLIC_API_URL` do resto do app.
 
-## O endpoint
+## O endpoint que o app consome
 
 ```
-POST {EXPO_PUBLIC_IA_API_URL}/api/ia/pets/{petId}/perguntas
+POST {EXPO_PUBLIC_API_URL}/pets/{petId}/ia/perguntar
 Authorization: Bearer <JWT>
 Content-Type: application/json
 ```
@@ -18,68 +18,83 @@ Content-Type: application/json
 { "pergunta": "O Rex está se movimentando menos que o normal?" }
 ```
 
-O app limita a pergunta a 280 caracteres e envia sem espaços nas pontas.
+O backend valida `@NotBlank @Size(max = 500)`. A tela usa o mesmo limite de 500
+(`LIMITE_PERGUNTA` em [`src/services/ia/iaService.ts`](../src/services/ia/iaService.ts))
+e corta os espaços das pontas antes de enviar.
 
 ### Resposta `200`
 
 ```json
 {
+  "id": 12,
+  "petId": 3,
+  "petNome": "Rex",
+  "tipo": "PERGUNTA",
+  "pergunta": "O Rex está se movimentando menos que o normal?",
   "resposta": "A atividade do Rex caiu nos últimos 7 dias...",
-  "geradoEm": "2026-10-31T14:32:10Z",
-  "fontes": [
-    { "rotulo": "Score de saúde", "detalhe": "62 hoje, média de 78 nos 30 dias" },
-    { "rotulo": "Coleira", "detalhe": "41 leituras sedentárias de 52 no período" }
-  ]
+  "scoreId": 48,
+  "alertaId": null,
+  "modelo": "gemini-2.5-flash",
+  "fontes": ["03-atividade-e-sedentarismo.md — Sedentarismo"],
+  "dataAnalise": "2026-10-31T16:14:55"
 }
 ```
 
-`fontes` pode vir vazio, e o app lida com isso — mas vale preencher. O
-enunciado da disciplina proíbe diagnóstico, e mostrar o dado que embasou a
-resposta é o que separa orientação de parecer veterinário. Os tipos estão em
-[`src/types/ia.ts`](../src/types/ia.ts).
+O app mostra `resposta` e `fontes`. Os outros campos estão tipados em
+[`src/types/ia.ts`](../src/types/ia.ts) para que a resposta não precise ser
+remapeada quando outra tela passar a usá-los.
 
-### Erros
+`fontes` é uma lista de strings (o backend concatena e corta em 1000
+caracteres), não um par rótulo/detalhe. Pode vir vazia, e o app lida com isso.
 
-O app usa o mesmo tratamento da API Java: procura `mensagem`, `message`,
-`erro` ou `error` no corpo e mostra o texto ao usuário.
+## Por que esta chamada não tem retry automático
 
-```json
-{ "mensagem": "Não há leituras suficientes para analisar este período." }
-```
+O resto do app usa `requestWithColdStartRetry`, que repete uma vez em `503` ou
+falha de conexão por causa do cold start do Render. Aqui não: responder uma
+pergunta **grava uma linha em `ANALISE_IA`**, então repetir sozinho depois de um
+timeout geraria uma segunda análise e cobraria duas vezes do Gemini.
 
-Um `401` com token presente desloga o app automaticamente, então só devolva
-`401` para token inválido ou expirado — para pet de outro tutor, use `403`.
+No lugar disso, o timeout é de 120s — o suficiente para somar o cold start do
+Render com o tempo do backend, que tenta o Gemini duas vezes com 60s cada
+(`app.ia.timeout-ms` x `app.ia.tentativas`). Se falhar, quem decide tentar de
+novo é o tutor.
+
+## Endpoints disponíveis que o app ainda não usa
+
+| Endpoint | O que faz |
+|---|---|
+| `POST /pets/{petId}/ia/analise` | análise de saúde sem pergunta, gravada no histórico |
+| `GET /pets/{petId}/ia/analises` | últimas 20 análises do pet |
+| `POST /pets/{petId}/ia/alertas/{alertaId}/explicar` | explica um alerta e a regra que o gerou |
+
+O de explicar alerta encaixaria direto na tela de alertas.
 
 ## Autenticação
 
-**Não emita token.** O Java é o único emissor do projeto; valide o token dele.
-É o que o .NET já faz (`PetCareHubServiceCollectionExtensions.cs`):
+O Java é o único emissor de token do projeto. O que o app manda é de tutor:
+`role = TUTOR` e `tutorId` preenchido, sem `clinicaId`. O `SecurityConfig`
+cobre a rota pelo matcher genérico `/pets/*/**`, que exige `TUTOR` ou `CLINICA`.
 
-- RS256, chave pública igual à `RSA_PUBLIC_KEY` do Java
-- `issuer` = `petcare-hub-api`, audience não validada
-- claims disponíveis: `role`, `tutorId`, `clinicaId`
+Um `401` com token presente desloga o app automaticamente
+([`client.ts`](../src/services/api/client.ts)), então o backend só deve
+devolver `401` para token inválido ou expirado.
 
-O token que o app manda é de tutor: `role = TUTOR` e `tutorId` preenchido,
-**sem `clinicaId`**. Dois cuidados que vêm disso:
+### Escopo por tutor
 
-- Autorize `TUTOR`. O `ContextoIaController` do .NET hoje exige
-  `Roles = "CLINICA"` e lê `clinicaId` — com o token do app ele devolve `403`.
-- Use o `tutorId` do token para conferir que o `petId` da rota pertence a esse
-  tutor. Não confie no `petId` sozinho.
+Os quatro métodos do `AnaliseSaudeService` começam por
+`petService.findEntityByIdAutorizado(petId)`, que compara o dono do pet com o
+`tutorId` do token e devolve `403` quando não bate. Então perguntar sobre o pet
+de outro tutor não passa do primeiro comando, antes de montar contexto ou
+chamar o Gemini.
 
-## Cold start
-
-O app já trata o cold start do plano gratuito do Render: timeout de 60s e uma
-repetição automática em `503` ou falha de conexão. A chamada é um `POST`, mas
-a repetição é segura desde que responder a uma pergunta não altere estado.
-**Se o endpoint gravar algo**, ele precisa ser idempotente ou o histórico pode
-ganhar entradas duplicadas.
+O `tutorId` entra também no `conversationId`, de modo que a memória curta da
+conversa não vaza entre tutores nem entre pets do mesmo tutor.
 
 ## Onde isso encosta no app
 
 | Arquivo | Papel |
 |---|---|
 | `src/types/ia.ts` | os tipos do contrato |
-| `src/services/ia/iaService.ts` | a chamada e a leitura da variável de ambiente |
+| `src/services/ia/iaService.ts` | a chamada, o limite e o timeout |
 | `src/hooks/mutations/usePerguntarIa.ts` | o hook de mutation |
 | `src/screens/IaScreen.tsx` | a tela |

@@ -28,22 +28,16 @@ export class ApiError extends Error {
 type ApiRequestOptions = RequestInit & {
   token?: string;
   timeoutMs?: number;
-  /**
-   * Outro servico que nao a API Java -- hoje só a API de IA. Fica como opcao
-   * em vez de um client separado porque o tratamento de erro, o timeout, o
-   * retry de cold start e o logout no 401 valem igual para os dois.
-   */
-  baseUrl?: string;
 };
 
 export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
-  const { token, timeoutMs = 20000, headers, baseUrl = API_BASE_URL, ...rest } = options;
+  const { token, timeoutMs = 20000, headers, ...rest } = options;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(`${baseUrl}${path}`, {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
       ...rest,
       headers: {
         'Content-Type': 'application/json',

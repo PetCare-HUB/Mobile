@@ -7,11 +7,9 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import { SectionHeader } from '../components/SectionHeader';
 import { StatusCard } from '../components/StatusCard';
 import { usePerguntarIa } from '../hooks/mutations/usePerguntarIa';
-import { iaDisponivel } from '../services/ia/iaService';
+import { LIMITE_PERGUNTA } from '../services/ia/iaService';
 import { colors, radius, spacing, typography } from '../theme';
 import { usePetContext } from '../contexts/pet/PetContext';
-
-const LIMITE_PERGUNTA = 280;
 
 export function IaScreen() {
   const { selectedPet } = usePetContext();
@@ -21,8 +19,7 @@ export function IaScreen() {
   const perguntar = usePerguntarIa();
 
   // Sem pet selecionado nao ha o que perguntar: o endpoint e por pet.
-  const podeEnviar =
-    iaDisponivel && selectedPet != null && pergunta.trim().length > 0 && !perguntar.isPending;
+  const podeEnviar = selectedPet != null && pergunta.trim().length > 0 && !perguntar.isPending;
 
   function enviar() {
     if (!podeEnviar || selectedPet == null) return;
@@ -37,16 +34,15 @@ export function IaScreen() {
         level="page"
       />
 
-      {!iaDisponivel ? (
+      {selectedPet == null ? (
         <StatusCard>
           <View style={styles.iconRow}>
             <View style={styles.iconBadge}>
-              <MaterialCommunityIcons name="robot-off-outline" size={22} color={colors.textSecondary} />
+              <MaterialCommunityIcons name="paw-off" size={22} color={colors.textSecondary} />
             </View>
             <Text style={styles.message}>
-              A assistente ainda não está conectada neste build. Assim que o serviço de IA
-              estiver publicado, esta tela passa a responder sem precisar de atualização do
-              app.
+              Escolha um pet para perguntar. A assistente responde a partir dos dados daquele
+              pet, então ela precisa saber de quem você está falando.
             </Text>
           </View>
         </StatusCard>
@@ -61,7 +57,7 @@ export function IaScreen() {
           placeholderTextColor={colors.textSecondary}
           multiline
           maxLength={LIMITE_PERGUNTA}
-          editable={iaDisponivel && selectedPet != null}
+          editable={selectedPet != null}
           onSubmitEditing={enviar}
         />
         <Text style={styles.contador}>
@@ -111,10 +107,9 @@ export function IaScreen() {
             <View style={styles.fontes}>
               <Text style={styles.fontesTitulo}>No que a resposta se baseia</Text>
               {perguntar.data.fontes.map((fonte) => (
-                <View key={`${fonte.rotulo}-${fonte.detalhe}`} style={styles.fonteLinha}>
-                  <Text style={styles.fonteRotulo}>{fonte.rotulo}</Text>
-                  <Text style={styles.fonteDetalhe}>{fonte.detalhe}</Text>
-                </View>
+                <Text key={fonte} style={styles.fonteTexto}>
+                  {fonte}
+                </Text>
               ))}
             </View>
           ) : null}
@@ -172,9 +167,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.borderGray,
   },
   fontesTitulo: { ...typography.caption, color: colors.textSecondary, marginBottom: spacing.xs },
-  fonteLinha: { flexDirection: 'row', marginBottom: spacing.xs },
-  fonteRotulo: { ...typography.caption, color: colors.textPrimary, marginRight: spacing.sm },
-  fonteDetalhe: { flex: 1, ...typography.caption, color: colors.textSecondary },
+  fonteTexto: { ...typography.caption, color: colors.textPrimary, marginBottom: spacing.xs },
   disclaimer: {
     ...typography.caption,
     color: colors.textSecondary,

@@ -60,8 +60,9 @@ O **PetCare Hub Mobile** permite que o responsável pelo pet:
 
 ### PetCare AI
 - Campo de pergunta com envio real, estados de carregamento e erro, e as fontes que embasaram a resposta.
-- Consome o serviço de IA apontado por `EXPO_PUBLIC_IA_API_URL`. Enquanto a variável não estiver definida, a tela informa que a assistente não está conectada em vez de simular uma resposta.
-- O contrato que o app espera está em [`docs/contrato-ia.md`](docs/contrato-ia.md).
+- A IA roda dentro da própria API Java (Spring AI + Gemini, com RAG sobre uma base veterinária), em `POST /pets/{petId}/ia/perguntar`. Não há segunda URL para configurar.
+- Sem retry automático de cold start: a chamada grava a análise no histórico, então repetir sozinho geraria uma segunda. O timeout é de 120s e quem decide tentar de novo é o tutor.
+- A integração está documentada em [`docs/contrato-ia.md`](docs/contrato-ia.md).
 
 ### Perfil
 - Dados do pet (espécie, raça, data de nascimento, peso, sexo, condições crônicas) com edição real.
@@ -133,7 +134,7 @@ petcare-hub-mobile/
 │   ├── types/                    # tipos das respostas/requisições da API
 │   └── utils/                    # mapeamento de dado da API pra UI
 │
-├── docs/contrato-ia.md         # contrato do endpoint da PetCare AI
+├── docs/contrato-ia.md         # integração com a PetCare AI
 ├── app.json                    # configuração estática
 ├── app.config.js               # injeta o commit do build
 ├── .env.example                # variáveis de ambiente
@@ -208,12 +209,11 @@ cp .env.example .env
 ```
 
 O app funciona sem esse passo — `EXPO_PUBLIC_API_URL` tem a URL de produção como
-fallback. O `.env` serve para apontar para outro ambiente e para ligar a PetCare AI:
+fallback. O `.env` serve para apontar para outro ambiente:
 
 | Variável | Para que serve |
 |---|---|
-| `EXPO_PUBLIC_API_URL` | API Java. Vazia = produção (Render) |
-| `EXPO_PUBLIC_IA_API_URL` | Serviço da PetCare AI. Vazia = aba informa que não está conectada |
+| `EXPO_PUBLIC_API_URL` | API Java, PetCare AI incluída. Vazia = produção (Render) |
 
 > O prefixo `EXPO_PUBLIC_` é obrigatório, e o valor é injetado **no build** — por isso
 > ele fica visível no bundle. Não coloque segredo aí.
