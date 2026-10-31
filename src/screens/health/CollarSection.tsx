@@ -32,8 +32,6 @@ const RANGE_SEGMENTS: { key: LeituraRange; label: string }[] = [
   { key: '30dias', label: '30 dias' },
 ];
 
-const BREAKDOWN_COLORS = [colors.bluePrimary, colors.warning, colors.greenSecondary];
-
 export function CollarSection({ petId }: CollarSectionProps) {
   const [range, setRange] = useState<LeituraRange>('hoje');
   const leiturasQuery = useLeiturasColeira(petId);
@@ -85,7 +83,16 @@ export function CollarSection({ petId }: CollarSectionProps) {
             <StatusCard>
               <Text style={styles.chartTitle}>Nível de atividade</Text>
               {chart.data.length > 0 ? (
-                <BarChart data={chart.data} labels={chart.labels} color={colors.bluePrimary} />
+                <BarChart
+                  data={chart.data}
+                  labels={chart.labels}
+                  barColors={chart.barColors}
+                  legend={[
+                    { label: 'Sedentário', color: colors.danger },
+                    { label: 'Moderado', color: colors.warning },
+                    { label: 'Ativo', color: colors.success },
+                  ]}
+                />
               ) : (
                 <Text style={styles.noDataText}>Sem leituras no período selecionado.</Text>
               )}
@@ -94,10 +101,10 @@ export function CollarSection({ petId }: CollarSectionProps) {
             <StatusCard>
               <Text style={styles.chartTitle}>Tempo em cada estado</Text>
               <View style={{ marginTop: spacing.md }}>
-                {timeInState.map((item, index) => (
+                {timeInState.map((item) => (
                   <BreakdownRow
                     key={item.key}
-                    color={BREAKDOWN_COLORS[index]}
+                    color={item.key === 'SEDENTARIO' ? colors.danger : item.key === 'MODERADO' ? colors.warning : colors.success}
                     label={item.label}
                     valueLabel={item.hours}
                     percent={item.percent}

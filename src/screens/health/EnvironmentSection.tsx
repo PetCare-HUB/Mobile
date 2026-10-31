@@ -1,19 +1,38 @@
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { DeviceCard } from '../../components/DeviceCard';
+import { BarChart } from '../../components/BarChart';
 import { QueryState } from '../../components/QueryState';
+import { SegmentedControl } from '../../components/SegmentedControl';
 import { SensorCard } from '../../components/SensorCard';
 import { StatusCard } from '../../components/StatusCard';
 import { colors, radius, spacing, typography } from '../../theme';
 import { useLeiturasAmbiente } from '../../hooks/queries/useLeiturasAmbiente';
-import { comfortLabel, isComfortable, statusQualidadeAr, statusUmidade, temperatureColor } from '../../utils/leituraMappers';
+import {
+  comfortLabel,
+  filterByRange,
+  isComfortable,
+  statusQualidadeAr,
+  statusUmidade,
+  temperatureColor,
+  temperatureHistoryBars,
+  type LeituraRange,
+} from '../../utils/leituraMappers';
 
 type EnvironmentSectionProps = {
   petId: number;
 };
 
+const RANGE_SEGMENTS: { key: LeituraRange; label: string }[] = [
+  { key: 'hoje', label: 'Hoje' },
+  { key: '7dias', label: '7 dias' },
+  { key: '30dias', label: '30 dias' },
+];
+
 export function EnvironmentSection({ petId }: EnvironmentSectionProps) {
+  const [range, setRange] = useState<LeituraRange>('hoje');
   const leiturasQuery = useLeiturasAmbiente(petId);
 
   return (
@@ -29,6 +48,8 @@ export function EnvironmentSection({ petId }: EnvironmentSectionProps) {
     >
       {(leituras) => {
         const atual = leituras[0];
+        const historico = filterByRange(leituras, range);
+        const temperatureChart = temperatureHistoryBars(historico, range);
         const confortavel = isComfortable(atual);
 
         return (
@@ -52,6 +73,24 @@ export function EnvironmentSection({ petId }: EnvironmentSectionProps) {
               description="Faixa segura: 10°C a 32°C."
               color={temperatureColor(atual.temperaturaAmbiente)}
             />
+            <SegmentedControl segments={RANGE_SEGMENTS} value={range} onChange={setRange} />
+            <StatusCard>
+              <Text style={styles.historyTitle}>Histórico de temperatura</Text>
+              {temperatureChart.data.length > 0 ? (
+                <BarChart
+                  data={temperatureChart.data}
+                  labels={temperatureChart.labels}
+                  barColors={temperatureChart.barColors}
+                  legend={[
+                    { label: 'Fora da faixa', color: colors.danger },
+                    { label: 'No limite', color: colors.warning },
+                    { label: 'Confortável', color: colors.success },
+                  ]}
+                />
+              ) : (
+                <Text style={styles.historyEmpty}>Sem leituras no período selecionado.</Text>
+              )}
+            </StatusCard>
             <SensorCard
               title="Umidade"
               value={`${atual.umidadePct}%`}
@@ -88,4 +127,6 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
   comfortLabel: { ...typography.cardTitle, color: colors.textPrimary },
+  historyTitle: { ...typography.cardTitle, color: colors.textPrimary, marginBottom: spacing.md },
+  historyEmpty: { ...typography.body, color: colors.textSecondary },
 });

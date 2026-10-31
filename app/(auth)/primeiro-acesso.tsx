@@ -44,7 +44,16 @@ export default function PrimeiroAcessoScreen() {
       />
 
       <StatusCard>
-        <AppInput label="Nome completo" placeholder="Seu nome" value={nome} onChangeText={setNome} icon="account-outline" />
+        <AppInput
+          label="Nome completo"
+          placeholder="Seu nome"
+          value={nome}
+          onChangeText={setNome}
+          icon="account-outline"
+          autoCapitalize="words"
+          autoCorrect={false}
+          textContentType="name"
+        />
         <AppInput
           label="CPF"
           placeholder="000.000.000-00"
@@ -53,7 +62,16 @@ export default function PrimeiroAcessoScreen() {
           keyboardType="numeric"
           icon="card-account-details-outline"
         />
-        <AppInput label="E-mail" placeholder="seu@email.com" value={email} onChangeText={setEmail} keyboardType="email-address" icon="email-outline" />
+        <AppInput
+          label="E-mail"
+          placeholder="seu@email.com"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          icon="email-outline"
+          autoComplete="email"
+          textContentType="emailAddress"
+        />
       </StatusCard>
 
       <Button label="Continuar" onPress={handleContinuar} style={styles.button} />

@@ -57,7 +57,17 @@ export function TutorFormModal({ visible, onClose, tutor }: TutorFormModalProps)
             </TouchableOpacity>
           </View>
 
-          <AppInput label="Nome" placeholder="Seu nome" value={nome} onChangeText={setNome} icon="account-outline" required />
+          <AppInput
+            label="Nome"
+            placeholder="Seu nome"
+            value={nome}
+            onChangeText={setNome}
+            icon="account-outline"
+            required
+            autoCapitalize="words"
+            autoCorrect={false}
+            textContentType="name"
+          />
           <AppInput
             label="E-mail"
             placeholder="seu@email.com"
@@ -66,6 +76,8 @@ export function TutorFormModal({ visible, onClose, tutor }: TutorFormModalProps)
             keyboardType="email-address"
             icon="email-outline"
             required
+            autoComplete="email"
+            textContentType="emailAddress"
           />
           <AppInput
             label="Telefone"

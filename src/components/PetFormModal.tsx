@@ -171,7 +171,16 @@ export function PetFormModal({ visible, onClose, mode, pet, defaultClinicaId }: 
             </Text>
           ) : (
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-              <AppInput label="Nome do pet" placeholder="Ex: Rex" value={nome} onChangeText={setNome} icon="paw-outline" required />
+              <AppInput
+                label="Nome do pet"
+                placeholder="Ex: Rex"
+                value={nome}
+                onChangeText={setNome}
+                icon="paw-outline"
+                required
+                autoCapitalize="words"
+                autoCorrect={false}
+              />
 
               <View style={styles.fieldGroup}>
                 <FieldLabel text="Espécie" required />
@@ -179,7 +188,15 @@ export function PetFormModal({ visible, onClose, mode, pet, defaultClinicaId }: 
               </View>
 
               {especie === 'OUTRO' ? (
-                <AppInput label="Raça" placeholder="Ex: Furão" value={raca} onChangeText={setRaca} icon="tag-outline" />
+                <AppInput
+                  label="Raça"
+                  placeholder="Ex: Furão"
+                  value={raca}
+                  onChangeText={setRaca}
+                  icon="tag-outline"
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                />
               ) : (
                 <BreedPicker label="Raça" value={raca} onChange={setRaca} options={especie === 'GATO' ? catBreeds : dogBreeds} />
               )}

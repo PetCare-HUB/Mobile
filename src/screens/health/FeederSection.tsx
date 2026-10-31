@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -5,16 +6,31 @@ import { AlertCard } from '../../components/AlertCard';
 import { BarChart } from '../../components/BarChart';
 import { DeviceCard } from '../../components/DeviceCard';
 import { QueryState } from '../../components/QueryState';
+import { SegmentedControl } from '../../components/SegmentedControl';
 import { StatusCard } from '../../components/StatusCard';
 import { colors, radius, spacing, typography } from '../../theme';
 import { useLeiturasComedouro } from '../../hooks/queries/useLeiturasComedouro';
-import { mediaConsumoDiario, reservoirColor, sumConsumoHoje, ultimasRefeicoes } from '../../utils/leituraMappers';
+import {
+  feederHistoryBars,
+  filterByRange,
+  reservoirColor,
+  sumConsumption,
+  ultimasRefeicoes,
+  type LeituraRange,
+} from '../../utils/leituraMappers';
 
 type FeederSectionProps = {
   petId: number;
 };
 
+const RANGE_SEGMENTS: { key: LeituraRange; label: string }[] = [
+  { key: 'hoje', label: 'Hoje' },
+  { key: '7dias', label: '7 dias' },
+  { key: '30dias', label: '30 dias' },
+];
+
 export function FeederSection({ petId }: FeederSectionProps) {
+  const [range, setRange] = useState<LeituraRange>('hoje');
   const leiturasQuery = useLeiturasComedouro(petId);
 
   return (
@@ -30,12 +46,12 @@ export function FeederSection({ petId }: FeederSectionProps) {
     >
       {(leituras) => {
         const atual = leituras[0];
+        const historico = filterByRange(leituras, range);
         const reservoirLow = atual.nivelRacaoPct < 20;
         const reservoirTone = reservoirColor(atual.nivelRacaoPct);
-        const todayGrams = Math.round(sumConsumoHoje(leituras));
-        const averageGrams = mediaConsumoDiario(leituras);
-        const changePercent = averageGrams > 0 ? Math.round(((todayGrams - averageGrams) / averageGrams) * 100) : 0;
-        const meals = ultimasRefeicoes(leituras);
+        const consumedGrams = Math.round(sumConsumption(historico));
+        const meals = ultimasRefeicoes(historico, range);
+        const consumptionChart = feederHistoryBars(historico, range);
 
         return (
           <>
@@ -51,29 +67,29 @@ export function FeederSection({ petId }: FeederSectionProps) {
               </View>
             </StatusCard>
 
+            <SegmentedControl segments={RANGE_SEGMENTS} value={range} onChange={setRange} />
+
             <StatusCard>
               <View style={styles.chartHeaderRow}>
-                <Text style={styles.chartTitle}>Consumo de hoje</Text>
+                <Text style={styles.chartTitle}>Consumo no período</Text>
                 <View style={styles.chartStats}>
-                  <Text style={styles.chartValue}>{todayGrams}g</Text>
-                  <Text style={styles.chartUnit}>hoje</Text>
+                  <Text style={styles.chartValue}>{consumedGrams}g</Text>
+                  <Text style={styles.chartUnit}>{range === 'hoje' ? 'hoje' : range === '7dias' ? '7 dias' : '30 dias'}</Text>
                 </View>
               </View>
-              {meals.length > 0 ? (
-                <BarChart data={meals.map((m) => m.grams)} labels={meals.map((m) => m.time)} color={colors.bluePrimary} />
+              {consumptionChart.data.length > 0 ? (
+                <BarChart
+                  data={consumptionChart.data}
+                  labels={consumptionChart.labels}
+                  barColors={consumptionChart.barColors}
+                  legend={[
+                    { label: 'Menor consumo', color: colors.danger },
+                    { label: 'Médio', color: colors.warning },
+                    { label: 'Maior consumo', color: colors.success },
+                  ]}
+                />
               ) : null}
-              {averageGrams > 0 ? (
-                <View style={styles.trendRow}>
-                  <MaterialCommunityIcons
-                    name={changePercent < 0 ? 'arrow-down-bold' : 'arrow-up-bold'}
-                    size={14}
-                    color={colors.textSecondary}
-                  />
-                  <Text style={styles.trendText}>
-                    {Math.abs(changePercent)}% vs. média de {averageGrams}g
-                  </Text>
-                </View>
-              ) : null}
+              {consumptionChart.data.length === 0 ? <Text style={styles.trendText}>Sem leituras no período selecionado.</Text> : null}
             </StatusCard>
 
             <StatusCard>

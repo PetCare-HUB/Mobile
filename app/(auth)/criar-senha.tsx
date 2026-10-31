@@ -61,8 +61,26 @@ export default function CriarSenhaScreen() {
       />
 
       <StatusCard>
-        <AppInput label="Senha" placeholder="Mínimo 8 caracteres" value={senha} onChangeText={setSenha} secureTextEntry icon="lock-outline" />
-        <AppInput label="Confirmar senha" placeholder="Repita a senha" value={confirmarSenha} onChangeText={setConfirmarSenha} secureTextEntry icon="lock-outline" />
+        <AppInput
+          label="Senha"
+          placeholder="Mínimo 8 caracteres"
+          value={senha}
+          onChangeText={setSenha}
+          secureTextEntry
+          icon="lock-outline"
+          autoComplete="password-new"
+          textContentType="newPassword"
+        />
+        <AppInput
+          label="Confirmar senha"
+          placeholder="Repita a senha"
+          value={confirmarSenha}
+          onChangeText={setConfirmarSenha}
+          secureTextEntry
+          icon="lock-outline"
+          autoComplete="password-new"
+          textContentType="newPassword"
+        />
       </StatusCard>
 
       {slowConnection && (

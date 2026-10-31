@@ -100,6 +100,8 @@ export default function LoginScreen() {
             onChangeText={setEmail}
             keyboardType="email-address"
             icon="email-outline"
+            autoComplete="email"
+            textContentType="emailAddress"
           />
           <AppInput
             label="Senha"
@@ -108,6 +110,8 @@ export default function LoginScreen() {
             onChangeText={setPassword}
             secureTextEntry
             icon="lock-outline"
+            autoComplete="current-password"
+            textContentType="password"
           />
 
           <TouchableOpacity style={styles.forgotPassword}>

@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View, type KeyboardTypeOptions } from 'react-native';
+import {
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+  type KeyboardTypeOptions,
+  type TextInputProps,
+} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors, radius, spacing, typography } from '../theme';
 import { FieldLabel } from './FieldLabel';
@@ -14,6 +21,10 @@ type AppInputProps = {
   icon?: keyof typeof MaterialCommunityIcons.glyphMap;
   required?: boolean;
   maxLength?: number;
+  autoCapitalize?: TextInputProps['autoCapitalize'];
+  autoCorrect?: boolean;
+  autoComplete?: TextInputProps['autoComplete'];
+  textContentType?: TextInputProps['textContentType'];
 };
 
 export function AppInput({
@@ -26,8 +37,19 @@ export function AppInput({
   icon,
   required,
   maxLength,
+  autoCapitalize,
+  autoCorrect,
+  autoComplete,
+  textContentType,
 }: AppInputProps) {
   const [hidden, setHidden] = useState(secureTextEntry);
+
+  // Senha e e-mail nunca devem deixar o teclado forçar maiúscula/corrigir a
+  // primeira letra — no e-mail isso muda o valor visivelmente, na senha é
+  // pior ainda porque o campo fica mascarado e o usuário nem percebe.
+  const isCampoSensivel = secureTextEntry || keyboardType === 'email-address';
+  const resolvedAutoCapitalize = autoCapitalize ?? (isCampoSensivel ? 'none' : 'sentences');
+  const resolvedAutoCorrect = autoCorrect ?? !isCampoSensivel;
 
   return (
     <View style={styles.container}>
@@ -43,6 +65,10 @@ export function AppInput({
           keyboardType={keyboardType}
           secureTextEntry={hidden}
           maxLength={maxLength}
+          autoCapitalize={resolvedAutoCapitalize}
+          autoCorrect={resolvedAutoCorrect}
+          autoComplete={autoComplete}
+          textContentType={textContentType}
         />
         {secureTextEntry ? (
           <TouchableOpacity onPress={() => setHidden((v) => !v)} hitSlop={8}>
