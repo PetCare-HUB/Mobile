@@ -1,4 +1,9 @@
-export const API_BASE_URL = 'https://petcare-hub-gokt.onrender.com';
+// A URL da API vem do ambiente. O Expo substitui as variaveis com prefixo
+// EXPO_PUBLIC_ no momento do build, entao trocar de backend (local, staging,
+// producao) nao exige mexer em codigo -- basta o .env. O valor abaixo e o
+// fallback de producao, usado quando nenhuma variavel foi definida.
+export const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ?? 'https://petcare-hub-gokt.onrender.com';
 
 // O token JWT do backend expira em 30 minutos. Quando uma chamada autenticada
 // volta 401, isso quase sempre significa "sessão expirada" (não credenciais
