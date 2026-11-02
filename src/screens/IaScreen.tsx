@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -30,22 +30,15 @@ export function IaScreen() {
   const { selectedPet } = usePetContext();
   const petName = selectedPet?.nome ?? 'seu pet';
 
-  // O campo e nao controlado de proposito. Com value={pergunta} o React
-  // reescreve o texto nativo a cada tecla, e no Android isso atropela a regiao
-  // de composicao do teclado: acento nao fecha e o backspace chega a apagar a
-  // frase inteira. Aqui o texto vive no ref, o React nunca o sobrescreve, e o
-  // state guarda so o tamanho, que e o que o contador precisa.
-  const pergunta = useRef('');
-  const [tamanho, setTamanho] = useState(0);
+  const [pergunta, setPergunta] = useState('');
   const perguntar = usePerguntarIa();
 
   // Sem pet selecionado nao ha o que perguntar: o endpoint e por pet.
-  const podeEnviar = selectedPet != null && tamanho > 0 && !perguntar.isPending;
+  const podeEnviar = selectedPet != null && pergunta.trim().length > 0 && !perguntar.isPending;
 
   function enviar() {
-    const texto = pergunta.current.trim();
-    if (!podeEnviar || selectedPet == null || texto.length === 0) return;
-    perguntar.mutate({ petId: selectedPet.id, pergunta: texto });
+    if (!podeEnviar || selectedPet == null) return;
+    perguntar.mutate({ petId: selectedPet.id, pergunta: pergunta.trim() });
   }
 
   return (
@@ -73,11 +66,8 @@ export function IaScreen() {
       <View style={styles.campo}>
         <TextInput
           style={styles.input}
-          defaultValue=""
-          onChangeText={(texto) => {
-            pergunta.current = texto;
-            setTamanho(texto.length);
-          }}
+          value={pergunta}
+          onChangeText={setPergunta}
           placeholder={`O que você quer saber sobre o ${petName}?`}
           placeholderTextColor={colors.textSecondary}
           multiline
@@ -86,7 +76,7 @@ export function IaScreen() {
           autoCapitalize="sentences"
         />
         <Text style={styles.contador}>
-          {tamanho}/{LIMITE_PERGUNTA}
+          {pergunta.length}/{LIMITE_PERGUNTA}
         </Text>
       </View>
 
