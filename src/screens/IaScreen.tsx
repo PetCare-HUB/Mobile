@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -11,19 +11,41 @@ import { LIMITE_PERGUNTA } from '../services/ia/iaService';
 import { colors, radius, spacing, typography } from '../theme';
 import { usePetContext } from '../contexts/pet/PetContext';
 
+/**
+ * O backend devolve o nome do arquivo da base ("02-alertas-do-sistema.md").
+ * Para o tutor isso e ruido; o numero so existe para ordenar os documentos.
+ */
+function rotularFonte(fonte: string): string {
+  const limpo = fonte
+    .replace(/\.md$/i, '')
+    .replace(/^\d+[-_]/, '')
+    .replace(/[-_]/g, ' ')
+    .trim();
+
+  if (limpo.length === 0) return fonte;
+  return limpo.charAt(0).toUpperCase() + limpo.slice(1);
+}
+
 export function IaScreen() {
   const { selectedPet } = usePetContext();
   const petName = selectedPet?.nome ?? 'seu pet';
 
-  const [pergunta, setPergunta] = useState('');
+  // O campo e nao controlado de proposito. Com value={pergunta} o React
+  // reescreve o texto nativo a cada tecla, e no Android isso atropela a regiao
+  // de composicao do teclado: acento nao fecha e o backspace chega a apagar a
+  // frase inteira. Aqui o texto vive no ref, o React nunca o sobrescreve, e o
+  // state guarda so o tamanho, que e o que o contador precisa.
+  const pergunta = useRef('');
+  const [tamanho, setTamanho] = useState(0);
   const perguntar = usePerguntarIa();
 
   // Sem pet selecionado nao ha o que perguntar: o endpoint e por pet.
-  const podeEnviar = selectedPet != null && pergunta.trim().length > 0 && !perguntar.isPending;
+  const podeEnviar = selectedPet != null && tamanho > 0 && !perguntar.isPending;
 
   function enviar() {
-    if (!podeEnviar || selectedPet == null) return;
-    perguntar.mutate({ petId: selectedPet.id, pergunta: pergunta.trim() });
+    const texto = pergunta.current.trim();
+    if (!podeEnviar || selectedPet == null || texto.length === 0) return;
+    perguntar.mutate({ petId: selectedPet.id, pergunta: texto });
   }
 
   return (
@@ -51,17 +73,20 @@ export function IaScreen() {
       <View style={styles.campo}>
         <TextInput
           style={styles.input}
-          value={pergunta}
-          onChangeText={setPergunta}
+          defaultValue=""
+          onChangeText={(texto) => {
+            pergunta.current = texto;
+            setTamanho(texto.length);
+          }}
           placeholder={`O que você quer saber sobre o ${petName}?`}
           placeholderTextColor={colors.textSecondary}
           multiline
           maxLength={LIMITE_PERGUNTA}
           editable={selectedPet != null}
-          onSubmitEditing={enviar}
+          autoCapitalize="sentences"
         />
         <Text style={styles.contador}>
-          {pergunta.length}/{LIMITE_PERGUNTA}
+          {tamanho}/{LIMITE_PERGUNTA}
         </Text>
       </View>
 
@@ -108,7 +133,7 @@ export function IaScreen() {
               <Text style={styles.fontesTitulo}>No que a resposta se baseia</Text>
               {perguntar.data.fontes.map((fonte) => (
                 <Text key={fonte} style={styles.fonteTexto}>
-                  {fonte}
+                  {rotularFonte(fonte)}
                 </Text>
               ))}
             </View>
