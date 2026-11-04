@@ -2,6 +2,7 @@
   "expo": {
     "name": "PetCare Hub",
     "slug": "petcare-hub-mobile",
+    "owner": "kelsonz",
     "version": "1.0.0",
     "scheme": "petcarehub",
     "orientation": "portrait",
@@ -16,6 +17,8 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "br.com.petcarehub.mobile",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -26,6 +29,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8707177e-fc21-426c-b06d-591cf21eb1dc"
+      }
     },
     "plugins": [
       "expo-router",
