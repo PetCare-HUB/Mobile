@@ -31,8 +31,8 @@ const SEVERITY_BY_FILTER: Record<FilterKey, AlertItem['severity'] | null> = {
 };
 
 const SEVERITY_STYLE: Record<AlertItem['severity'], { color: string; background: string; icon: keyof typeof MaterialCommunityIcons.glyphMap }> = {
-  high: { color: colors.danger, background: '#FBE7E7', icon: 'alert-circle' },
-  medium: { color: colors.warning, background: '#FDF1DF', icon: 'battery-alert-variant' },
+  high: { color: colors.danger, background: colors.dangerLight, icon: 'alert-circle' },
+  medium: { color: colors.warning, background: colors.warningLight, icon: 'battery-alert-variant' },
   low: { color: colors.bluePrimary, background: colors.blueLight, icon: 'information' },
 };
 

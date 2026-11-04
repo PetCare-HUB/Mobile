@@ -34,7 +34,7 @@ export function Button({ label, onPress, variant = 'primary', disabled, loading,
 const variantStyles = {
   primary: {
     container: { backgroundColor: colors.greenPrimary, borderWidth: 0 },
-    text: { color: colors.surface },
+    text: { color: colors.onPrimary },
   },
   secondary: {
     container: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderGray },

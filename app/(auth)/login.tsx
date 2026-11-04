@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: colors.greenPrimary,
   },
-  tabActiveText: { ...typography.subtitle, color: colors.surface },
+  tabActiveText: { ...typography.subtitle, color: colors.onPrimary },
   tabInactive: {
     flex: 1,
     alignItems: 'center',

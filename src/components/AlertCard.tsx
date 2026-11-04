@@ -10,11 +10,11 @@ type AlertCardProps = {
 
 function getAlertStyle(severity: AlertCardProps['severity']) {
   if (severity === 'high') {
-    return { backgroundColor: '#FBE7E7', titleColor: colors.danger, iconName: 'alert-circle' as const };
+    return { backgroundColor: colors.dangerLight, titleColor: colors.danger, iconName: 'alert-circle' as const };
   }
 
   if (severity === 'medium') {
-    return { backgroundColor: '#FDF1DF', titleColor: colors.warning, iconName: 'alert' as const };
+    return { backgroundColor: colors.warningLight, titleColor: colors.warning, iconName: 'alert' as const };
   }
 
   return { backgroundColor: colors.blueLight, titleColor: colors.bluePrimary, iconName: 'information' as const };

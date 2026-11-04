@@ -98,7 +98,7 @@ export function HomeScreen() {
       label: 'Ambiente',
       value: ultimoAmbiente ? comfortLabel(ultimoAmbiente) : 'Sem dados',
       iconColor: colors.aiPurple,
-      backgroundColor: '#EDEBFB',
+      backgroundColor: colors.aiPurpleLight,
     },
     {
       key: 'alertas',
@@ -106,7 +106,7 @@ export function HomeScreen() {
       label: 'Alertas',
       value: alertsCount > 0 ? `${alertsCount} ativo${alertsCount > 1 ? 's' : ''}` : 'Nenhum',
       iconColor: colors.danger,
-      backgroundColor: '#FBE7E7',
+      backgroundColor: colors.dangerLight,
     },
   ];
 

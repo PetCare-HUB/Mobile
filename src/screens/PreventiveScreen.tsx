@@ -149,12 +149,12 @@ export function PreventiveScreen() {
                       >
                         <View style={[styles.rowIcon, { backgroundColor: color }]}>
                           {processando ? (
-                            <ActivityIndicator size="small" color={colors.surface} />
+                            <ActivityIndicator size="small" color={colors.onPrimary} />
                           ) : (
                             <MaterialCommunityIcons
                               name={done ? 'check' : TIPO_ICON[evento.tipo]}
                               size={16}
-                              color={colors.surface}
+                              color={colors.onPrimary}
                             />
                           )}
                         </View>

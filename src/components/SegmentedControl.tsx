@@ -40,5 +40,5 @@ const styles = StyleSheet.create({
   },
   segmentActive: { backgroundColor: colors.greenPrimary },
   label: { ...typography.subtitle, fontWeight: '600', color: colors.textSecondary },
-  labelActive: { color: colors.surface },
+  labelActive: { color: colors.onPrimary },
 });

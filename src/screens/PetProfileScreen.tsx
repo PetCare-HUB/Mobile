@@ -12,7 +12,8 @@ import { QueryState } from '../components/QueryState';
 import { StatusCard } from '../components/StatusCard';
 import { TutorFormModal } from '../components/TutorFormModal';
 import { UnderlineTabs } from '../components/UnderlineTabs';
-import { colors, radius, spacing, typography } from '../theme';
+import { colors, esquemaDeCores, radius, spacing, typography } from '../theme';
+import { aplicarTema } from '../theme/temaPreferido';
 import { useAuth } from '../contexts/auth/AuthContext';
 import { usePetContext } from '../contexts/pet/PetContext';
 import { useLeiturasAmbiente } from '../hooks/queries/useLeiturasAmbiente';
@@ -66,6 +67,25 @@ export function PetProfileScreen() {
   const [notifAlertas, setNotifAlertas] = useState(true);
   const [notifPreventivo, setNotifPreventivo] = useState(true);
   const [notifRacao, setNotifRacao] = useState(true);
+  // Comeca no tema em uso e acompanha o toque, para o switch responder na hora
+  // mesmo antes do app reabrir.
+  const temaEmUsoEscuro = esquemaDeCores === 'dark';
+  const [temaEscuro, setTemaEscuro] = useState(temaEmUsoEscuro);
+  const [esperouReinicio, setEsperouReinicio] = useState(false);
+
+  function trocarTema() {
+    const escuro = !temaEscuro;
+    setTemaEscuro(escuro);
+    aplicarTema(escuro ? 'dark' : 'light').catch(() => {});
+    // Se o app reabrir, este timer morre junto. Se nao reabrir (o reinicio
+    // falhou ou nao e suportado ali), a escolha ja esta gravada e vale na
+    // proxima abertura; a dica passa a pedir isso.
+    setTimeout(() => setEsperouReinicio(true), 1500);
+  }
+
+  // So pede para reabrir se a escolha for diferente do tema em uso: ligar e
+  // desligar de volta nao deixa nada pendente.
+  const precisaReabrir = esperouReinicio && temaEscuro !== temaEmUsoEscuro;
 
   useEffect(() => {
     async function carregarPreferencias() {
@@ -257,6 +277,26 @@ export function PetProfileScreen() {
         ))}
       </StatusCard>
 
+      <StatusCard style={styles.aparenciaCard}>
+        <Text style={styles.prefsTitle}>Aparência</Text>
+        <View style={styles.prefRow}>
+          <Text style={styles.prefLabel}>Tema escuro</Text>
+          <TouchableOpacity
+            onPress={trocarTema}
+            style={[styles.toggle, temaEscuro && styles.toggleActive]}
+            activeOpacity={0.8}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: temaEscuro }}
+            accessibilityLabel="Tema escuro"
+          >
+            <View style={[styles.toggleThumb, temaEscuro && styles.toggleThumbActive]} />
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.aparenciaDica}>
+          {precisaReabrir ? 'Feche e abra o app para aplicar.' : 'O app reabre para aplicar a troca.'}
+        </Text>
+      </StatusCard>
+
       <TouchableOpacity
         style={styles.sobreLinha}
         onPress={() => router.push('/sobre')}
@@ -381,6 +421,8 @@ const styles = StyleSheet.create({
   timelineDate: { ...typography.secondaryInfo, color: colors.textSecondary, width: 56 },
   timelineTitle: { ...typography.body, color: colors.textPrimary, flex: 1 },
   prefsCard: { marginTop: spacing.lg, marginBottom: spacing.lg },
+  aparenciaCard: { marginBottom: spacing.lg },
+  aparenciaDica: { ...typography.caption, color: colors.textSecondary, marginTop: spacing.xs },
   sobreLinha: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -400,6 +442,6 @@ const styles = StyleSheet.create({
   prefLabel: { ...typography.body, color: colors.textPrimary, flex: 1 },
   toggle: { width: 44, height: 24, borderRadius: radius.pill, backgroundColor: colors.borderGray, padding: 2, justifyContent: 'center' },
   toggleActive: { backgroundColor: colors.greenPrimary },
-  toggleThumb: { width: 20, height: 20, borderRadius: radius.pill, backgroundColor: colors.surface, alignSelf: 'flex-start' },
+  toggleThumb: { width: 20, height: 20, borderRadius: radius.pill, backgroundColor: colors.onPrimary, alignSelf: 'flex-start' },
   toggleThumbActive: { alignSelf: 'flex-end' },
 });

@@ -9,6 +9,7 @@ export default function SobreLayout() {
         headerShadowVisible: false,
         headerTintColor: colors.textPrimary,
         headerTitleStyle: { fontWeight: '700', color: colors.textPrimary },
+        contentStyle: { backgroundColor: colors.background },
       }}
     >
       <Stack.Screen name="index" options={{ title: 'Sobre o app' }} />

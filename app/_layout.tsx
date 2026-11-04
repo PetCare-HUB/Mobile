@@ -10,7 +10,7 @@ import { queryClient } from '../src/services/api/queryClient';
 import { AuthProvider, useAuth } from '../src/contexts/auth/AuthContext';
 import { PetProvider } from '../src/contexts/pet/PetContext';
 import { useAlertNotifications } from '../src/hooks/useAlertNotifications';
-import { colors } from '../src/theme';
+import { colors, esquemaDeCores } from '../src/theme';
 
 function RootNavigation() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -46,7 +46,9 @@ function RootNavigation() {
     return <View style={{ flex: 1, backgroundColor: colors.background }} />;
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }} />
+  );
 }
 
 export default function RootLayout() {
@@ -56,7 +58,10 @@ export default function RootLayout() {
         <AuthProvider>
           <PetProvider>
             <RootNavigation />
-            <StatusBar style="dark" />
+            {/* Icones claros sobre o fundo escuro e vice-versa. Segue a paleta
+                escolhida na abertura, nao o tema ao vivo, para os dois nunca
+                discordarem. */}
+            <StatusBar style={esquemaDeCores === 'dark' ? 'light' : 'dark'} />
           </PetProvider>
         </AuthProvider>
       </QueryClientProvider>
