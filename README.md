@@ -237,18 +237,17 @@ npx expo start --ios
 
 ### 5. Conta para testar
 
-O app não tem cadastro livre — o login (e o "Primeiro acesso") só funciona com um tutor que já exista no banco por trás da API (pré-cadastrado por uma clínica).
+O app não tem cadastro livre — o login (e o "Primeiro acesso") só funciona com um tutor que já exista no banco por trás da API, pré-cadastrado por uma clínica. Então já deixamos uma conta ativada:
 
-**Procedimento reproduzível, sem depender de pedir conta a ninguém** (backend Java, ver seu README):
+| E-mail | Senha |
+|---|---|
+| `ana.souza@email.com` | `12345678` |
 
-1. A API Java, ao subir contra um banco Oracle **vazio**, insere sozinha uma clínica de exemplo:
-   `contato@clinicavidapet.test` / `Senha123` (ver `DataLoader`, ligado por `app.seed.enabled=true`).
-2. Abra o Swagger da API (`/swagger-ui.html`) e chame `POST /auth/login` com esse e-mail/senha pra pegar o token da clínica.
-3. Com esse token, chame `POST /tutor` (Swagger tem botão "Authorize") informando nome, CPF, e-mail e telefone de um tutor de teste qualquer.
-4. No app, use "Primeiro acesso" com esse mesmo nome/CPF/e-mail pra ativar a conta e definir a senha.
-5. Pronto — login normal a partir daí, com a clínica do pré-cadastro já resolvida automaticamente.
+É a tutora do Rex, com pet, histórico, score e alertas já vinculados — a Home abre com conteúdo, não vazia. Basta entrar direto pelo **Login**; o "Primeiro acesso" não é necessário.
 
-> Isso funciona de ponta a ponta contra um Oracle novo (ambiente do próprio avaliador). Se estiver testando contra o ambiente compartilhado do grupo (Render), que já tem clínicas cadastradas, o seed automático não roda (só age em banco vazio) — nesse caso, peça uma conta de tutor já ativada ou os dados de um pré-cadastro a quem administra esse ambiente específico.
+> A primeira tentativa pode demorar até ~1 minuto: a API roda no plano gratuito do Render e hiberna depois de um tempo ociosa. O app faz retry automático nas leituras, então vale esperar antes de concluir que falhou.
+
+**Se preferir criar a sua própria conta**, o fluxo completo é o do pré-cadastro (ver o README do backend Java): uma clínica autenticada chama `POST /tutor` com nome, CPF, e-mail e telefone; depois, no app, o "Primeiro acesso" com esses mesmos nome/CPF/e-mail ativa a conta e define a senha. As credenciais de clínica para esse passo estão na seção "Contas de demonstração" do README da API Java.
 
 ## 📺 Demonstração em Vídeo
 
