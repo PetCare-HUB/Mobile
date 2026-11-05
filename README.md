@@ -2,7 +2,33 @@
 
 Aplicativo mobile desenvolvido em **React Native com Expo** para o Challenge FIAP 2026 — CLYVO VET.
 
-aInterface do tutor dentro da plataforma **PetCare Hub**: acompanha a saúde do pet de forma contínua e preventiva, com login real, dados vindos da API Java (sem mock) e sessão persistida no dispositivo.
+Interface do tutor dentro da plataforma **PetCare Hub**: acompanha a saúde do pet de forma contínua e preventiva, com login real, dados vindos da API Java (sem mock) e sessão persistida no dispositivo.
+
+---
+
+## 📲 Instalar o app (APK)
+
+A versão avaliada está publicada como APK, gerada pelo EAS Build:
+
+**[Baixar o APK — PetCare Hub 1.0.0](https://expo.dev/artifacts/eas/gKI9AyQ3e8JUVP2m8vkC4D5aKM2gAzTVTdosBslZwxo.apk)**
+
+| | |
+|---|---|
+| Versão | 1.0.0 |
+| Pacote | `br.com.petcarehub.mobile` |
+| Gerado do commit | [`147c79d`](https://github.com/PetCare-HUB/Mobile/commit/147c79d) · tag [`v1.0.0`](https://github.com/PetCare-HUB/Mobile/tree/v1.0.0) |
+| Android mínimo | 7.0 (API 24) |
+
+**Como instalar:** abra o link no celular Android, baixe o arquivo e toque nele. O Android pede
+para permitir a instalação de apps dessa origem — autorize e confirme. Para entrar, use a conta
+em [Conta para testar](#5-conta-para-testar).
+
+**Como conferir que é este código:** a tela **Perfil → Sobre o app** mostra o commit que gerou o
+build, `147c79d`. A tag `v1.0.0` aponta para esse commit, e os commits posteriores alteram só a
+documentação — dá para conferir em
+[`v1.0.0...main`](https://github.com/PetCare-HUB/Mobile/compare/v1.0.0...main).
+
+O APK sai do perfil `preview` do `eas.json`: `npx eas-cli build -p android --profile preview`.
 
 ---
 
@@ -27,6 +53,7 @@ O **PetCare Hub Mobile** permite que o responsável pelo pet:
 - cadastre, edite e exclua os próprios pets, e edite os próprios dados de contato;
 - receba notificação no aparelho quando o backend abrir um alerta grave para algum dos seus pets;
 - pergunte à **PetCare AI** sobre os dados do pet;
+- use o app no **modo claro ou escuro**;
 - confira em **Sobre o app** qual commit gerou a versão instalada.
 
 ---
@@ -72,6 +99,8 @@ O **PetCare Hub Mobile** permite que o responsável pelo pet:
 - Status dos dispositivos vinculados (coleira, comedouro, sensor de ambiente).
 - Histórico recente (alertas e eventos preventivos concluídos).
 - Preferências de notificação (`AsyncStorage`) — governam os avisos disparados pelos alertas do backend.
+- **Aparência → Tema escuro:** liga e desliga o modo escuro. A escolha fica salva no aparelho e o app
+  reabre sozinho para aplicar. Sem escolha, o app segue o tema do celular.
 - Acesso à tela **Sobre o app**.
 - Logout.
 
@@ -251,7 +280,9 @@ O app não tem cadastro livre — o login (e o "Primeiro acesso") só funciona c
 
 ## 📺 Demonstração em Vídeo
 
-Vídeo de apresentação do app, publicado no YouTube: [assista aqui](https://youtu.be/97hjtDnuxmY?si=wVhmzgkwjcXPI5as)
+Vídeo de apresentação da Sprint 4, gravado com o APK publicado: [assista aqui](https://youtube.com/shorts/__s3I1YPjDA)
+
+Vídeo da Sprint 3: [assista aqui](https://youtu.be/97hjtDnuxmY?si=wVhmzgkwjcXPI5as)
 
 ---
 
